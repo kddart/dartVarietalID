@@ -14,8 +14,6 @@
 
 dartVarietalIDShiny <- function(...) {
 
-  addResourcePath("foo", "www")
-
   structure_colors <-  c(
     "#F6222E",
     "#16FF32",
@@ -54,7 +52,6 @@ dartVarietalIDShiny <- function(...) {
   options(shiny.maxRequestSize = 30 * 1024 ^ 2)
 
   box_color <- "green"
-  # box_height <- "height:1000px;"
   box_height <- '100%'
   input_class <- c("ui small icon input",
                    "ui fluid icon input")
@@ -69,7 +66,7 @@ dartVarietalIDShiny <- function(...) {
 
       dashboardHeader(
         logo_align = "left",
-        logo_path =  "/foo/logo.png",
+        logo_path =  "logo.png",
         color = "green",
         menu_button_label = "",
         class = "ui top attached header",
