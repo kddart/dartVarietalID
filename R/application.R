@@ -65,8 +65,6 @@ dartVarietalIDShiny <- function(...) {
       title = "Varietal Identification",
 
       dashboardHeader(
-        logo_align = "left",
-        logo_path =  "logo.png",
         color = "green",
         menu_button_label = "",
         class = "ui top attached header",
