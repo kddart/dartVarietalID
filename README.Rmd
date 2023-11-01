@@ -15,40 +15,31 @@ knitr::opts_chunk$set(
 
 # dartVarietalID
 
-<!-- badges: start -->
-<!-- badges: end -->
-
 The goal of dartVarietalID is to ...
 
 ## Installation
 
-You can install the development version of dartVarietalID like so:
+dartVarietalID is at the moment in a private repository. To install it, use auth_token with a token from https://github.com/settings/tokens. 
+
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+library(devtools)
+install_github("kddart/dartVarietalID", auth_token = "abc")
 ```
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+This is how you can run the dartVarietalID app:
 
 ```{r example}
 library(dartVarietalID)
-## basic example code
+dartVarietalIDShiny()
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+You can open a folder with example datasets here:
 
-```{r cars}
-summary(cars)
+``` r
+browseURL(system.file("extdata",package = "dartVarietalID"))
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this.
 
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
-```
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
