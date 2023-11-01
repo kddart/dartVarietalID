@@ -12,6 +12,7 @@ knitr::opts_chunk$set(
   out.width = "100%"
 )
 ```
+[installation_tutorial]: https://github.com/green-striped-gecko/dartR/wiki/Installation-tutorial
 
 # dartVarietalID
 
@@ -22,24 +23,24 @@ The goal of dartVarietalID is to ...
 dartVarietalID is at the moment in a private repository. To install it, use auth_token with a token from https://github.com/settings/tokens. 
 
 
-``` r
 library(devtools)
 install_github("kddart/dartVarietalID", auth_token = "abc")
-```
+
+For dartVarietalID to work the R package dartR needs to be installed. Please consult [this installation tutorial][installation_tutorial] to install dartR.
 
 ## Example
 
 This is how you can run the dartVarietalID app:
 
-```{r example}
+
 library(dartVarietalID)
 dartVarietalIDShiny()
-```
+
 
 You can open a folder with example datasets here:
 
-``` r
+
 browseURL(system.file("extdata",package = "dartVarietalID"))
-```
+
 
 
