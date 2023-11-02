@@ -24,7 +24,7 @@ calculatePurity <- function(genotypic_counts,
     data.frame(
       absent_score = result$absent_score,
       present_score = result$present_score,
-      purityPercent = result$present_score
+      purityPercent = result$purityPercent
     )
   }))
 }
