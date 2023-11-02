@@ -48,9 +48,9 @@
 #' @export
 
 runSampleAnalysis <- function(counts.file,
-                                  info.file,
-                                  ncores = parallel::detectCores() - 1,
-                                  pop.size = 10) {
+                              info.file,
+                              ncores = parallel::detectCores() - 1,
+                              pop.size = 10) {
 
   # read in counts file and info file
   ref_sam <- read.dart.counts(counts.file = counts.file,

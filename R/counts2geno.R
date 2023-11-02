@@ -117,11 +117,6 @@ for (int j = 0; j < loc; j++) {
 
   loc.names <- loc_names
   n.loc <- length(loc.names)
-  # first column stores SampleType
-  # second column stores TargetID
-  # fifth column stores Genotype
-  # six column stores RefType
-
 
   misc.info <- lapply(1:5, function(i) {
     NULL
@@ -166,7 +161,7 @@ for (int j = 0; j < loc; j++) {
   }
 
   res <- Reduce(rbind, sep_res)
-
+  ploidy(res) <- 2
   locNames(res) <- loc.names
   res$other$ind.metrics <- as.data.frame(misc.info)
   res$other$loc.metrics <- loc_metrics

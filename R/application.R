@@ -199,12 +199,23 @@ dartVarietalIDShiny <- function(...) {
               color = box_color,
               collapsible = FALSE,
               title_side = "top left",
+              fluidRow(
+                column(3,
+              numericInput(
+                inputId = "pop_size",
+                label = "Population sizes to simulate",
+                value = 10,
+                min = 1
+              ),
+              br(),
               button(
                 input_id = "run_id",
                 label = span(icon("play"), "RUN"),
                 class = "ui green button"
               ),
+              br(),
               downloadButton('download',"Save results table to csv file"),
+              br())),
               DT::dataTableOutput("res.ID"),
               style = "height:500px; overflow-y: scroll;overflow-x: scroll;"
             )
@@ -444,7 +455,8 @@ dartVarietalIDShiny <- function(...) {
       counts_path <- input$counts_file
       info_path <- input$info_file
       res_ID <<- runSampleAnalysis(counts.file = counts_path$datapath,
-                          info.file = info_path$datapath)
+                          info.file = info_path$datapath,
+                          pop.size = input$pop_size)
       ID_res(res_ID)
       output$res.ID <-  DT::renderDataTable({datatable(res_ID$res_summary)})
 

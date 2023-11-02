@@ -6,7 +6,8 @@
 #' @export
 
 read.dart.counts <- function(counts.file,
-                             info.file) {
+                             info.file
+                             ) {
 
   getLastMarkerMetaDataField <- function(filepath) {
     top <- read.csv(
@@ -116,6 +117,7 @@ read.dart.counts <- function(counts.file,
 
   # getting samples from counts file based on info file
   datas <- snpraw[, (lmet + 1):ncol(snpraw)]
+
   keep_names <- which(colnames(datas) %in% make.unique(merge_names$TargetID))
   datas <- datas[, keep_names]
   merge_names$TargetID <- make.unique(merge_names$TargetID)
