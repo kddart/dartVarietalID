@@ -217,7 +217,7 @@ dartVarietalIDShiny <- function(...) {
               downloadButton('download',"Save results table to csv file"),
               br())),
               DT::dataTableOutput("res.ID"),
-              style = "height:500px; overflow-y: scroll;overflow-x: scroll;"
+              style = "height:800px; overflow-y: scroll;overflow-x: scroll;"
             )
           ),
 
@@ -241,7 +241,7 @@ dartVarietalIDShiny <- function(...) {
                 class = "ui green button"
               ),
               fluidRow(h3("PCA of the ten closest references to the sample")),
-              plotlyOutput("plot_pca")
+              plotlyOutput("plot_pca",height="800px")
             )
           )
         )
