@@ -8,8 +8,8 @@ getMergedBinsClusters <-
            method,
            mapping = NULL,
            coloring = NULL,
-           showLine = T,
-           useAutoPar = T,
+           showLine = TRUE,
+           useAutoPar = TRUE,
            text = NULL,
            colorFunc = polychrome) {
     set.seed(123)

@@ -14,19 +14,6 @@
 
 dartVarietalIDShiny <- function(...) {
 
-  structure_colors <-  c(
-    "#F6222E",
-    "#16FF32",
-    "#FEAF16",
-    "#1CFFCE",
-    "#F8A19F",
-    "#1C8356",
-    "#85660D",
-    "#BDCDFF",
-    "#822E1C",
-    "#3B00FB"
-  )
-
   #### dataset list ###
   datasetListUI <- function(id) {
     ns <- NS(id)
@@ -235,12 +222,18 @@ dartVarietalIDShiny <- function(...) {
               collapsible = FALSE,
               title_side = "top left",
               datasetListUI(id = "dataList"),
+              numericInput(
+                inputId = "n_ref",
+                label = "Number of closest references to the sample to plot",
+                value = 10,
+                min = 1
+              ),
               button(
                 input_id = "run_pca",
                 label = span(icon("play"), "RUN"),
                 class = "ui green button"
               ),
-              fluidRow(h3("PCA of the ten closest references to the sample")),
+              fluidRow(h3("PCA of the closest references to the sample")),
               plotlyOutput("plot_pca",height="800px")
             )
           )
@@ -484,7 +477,7 @@ dartVarietalIDShiny <- function(...) {
       mydata_tmp <- as.character(input$dataList)
       mydata_tmp2 <-
         res_ID$res_full[which(names(res_ID$res_full) == mydata_tmp)]
-      mydata_tmp3 <- mydata_tmp2[[1]][1:10, "RefType"]
+      mydata_tmp3 <- mydata_tmp2[[1]][1:input$n_ref, "RefType"]
       pop_ref_tmp <- res_ID$gl.references
       pop_ref <- gl.keep.pop(pop_ref_tmp,
                              pop.list = mydata_tmp3)
@@ -502,7 +495,7 @@ dartVarietalIDShiny <- function(...) {
           x = pop_ref_sam,
           zaxis = 3,
           pt.size = 4,
-          pt.colors = c(structure_colors[1:nPop(pop_ref)], "black"),
+          pt.colors = c(polychrome(nPop(pop_ref)), "black"),
           axis.label.size = 2,
           label.size = 1
         )
