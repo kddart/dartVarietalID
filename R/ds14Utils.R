@@ -31,9 +31,7 @@ ds14.verify <- function(report) {
 ds14.read <- function(file) {
   if (class(file) == "character") {
     if (file.exists(file)) {
-      # report = read.csv(file,header = F,stringsAsFactors = F)
-      library(data.table)
-      report = as.matrix(fread(file, header = F, stringsAsFactors = F))
+      report = as.matrix(fread(file, header = FALSE, stringsAsFactors = FALSE))
     } else{
       stop("report is of type character, but does not appear to point to a valid file")
     }

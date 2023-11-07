@@ -48,7 +48,6 @@ readTargetInfoFile <-
     obj$table = obj$table[, names(obj$table) %in% union(expectedFields, filterFields)]
 
     obj$getReferences <- function() {
-      library(dartConverters)
       refTable =  obj$table[!is.na(obj$table$RefType) &
                               obj$table$RefType != "",]
       table = subset(refTable, select = -c(SampleType))
@@ -57,7 +56,6 @@ readTargetInfoFile <-
     }
 
     obj$getSamples = function() {
-      library(dartConverters)
       refTable =  obj$table[is.na(obj$table$RefType) |
                               obj$table$RefType == "",]
       table = subset(refTable, select = -c(RefType))

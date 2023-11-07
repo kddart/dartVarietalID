@@ -4,7 +4,7 @@ Title: Identification of crop varieties
 Version: 0.1.0
 License: GPL (>= 3)
 Encoding: UTF-8
-Depends: R (>= 3.5), adegenet (>= 2.0.0), dplyr, dartR, stats, parallel, data.table, Rcpp, shinyWidgets, shiny, shinyjs, tableHTML,colorspace, plotly,methods, semantic.dashboard, shiny.semantic,DT
+Depends: R (>= 3.5), adegenet (>= 2.0.0), dplyr, dartR, stats, parallel, data.table, Rcpp, shinyWidgets, shiny, shinyjs, tableHTML,colorspace, plotly,methods, semantic.dashboard, shiny.semantic,DT,dendextend
 LazyData: true
 RoxygenNote: 7.2.3
 LinkingTo: Rcpp

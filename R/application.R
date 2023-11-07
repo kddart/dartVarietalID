@@ -233,7 +233,6 @@ dartVarietalIDShiny <- function(...) {
                 label = span(icon("play"), "RUN"),
                 class = "ui green button"
               ),
-              fluidRow(h3("PCA of the closest references to the sample")),
               plotlyOutput("plot_pca",height="800px")
             )
           )
