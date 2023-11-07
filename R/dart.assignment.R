@@ -19,8 +19,6 @@
 dart.assignment <- function(ref,
                             unknown) {
 
-  require(dartR)
-
   gl2alleles <- function (gl) {
     x <- as.matrix(gl)
     homs1 <-
@@ -71,10 +69,9 @@ dart.assignment <- function(ref,
                     Genotype = NA,
                     RefType = NA,
                     NumLoci = NA,
-                    Probability = 0)
+                    Probability = NA)
 
   for (popx in 1:length(ref)) {
-    prob <- 1
     popfreq <- frequencies[[popx]]
 
     loc <-

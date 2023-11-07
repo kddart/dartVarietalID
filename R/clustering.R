@@ -15,7 +15,6 @@ getMergedBinsClusters <-
     set.seed(123)
     hc = hclust(as.dist(distances), method = method)
 
-    library(dendextend)
     distancesByAxis = as.matrix(distances)
 
     if (!is.null(mapping)) {

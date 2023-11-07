@@ -45,6 +45,7 @@
 #' @import semantic.dashboard
 #' @import shiny.semantic
 #' @import DT
+#' @import dendextend
 #' @export
 
 runSampleAnalysis <- function(counts.file,
