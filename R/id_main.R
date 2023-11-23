@@ -105,11 +105,32 @@ runSampleAnalysis <- function(counts.file,
   }
 
   # assigning reference to samples
-  if(ncores == 1){
-    res_tmp <- lapply(X = top_ind,
-                      FUN = dart.assignment,
-                      ref = ref_pops_sep)
-  }else{
+  # if(ncores == 1){
+  #   res_tmp <- lapply(X = top_ind,
+  #                     FUN = dart.assignment,
+  #                     ref = ref_pops_sep)
+  # }else{
+  #
+  #   # if unix
+  #   if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+  #     res_tmp <- parallel::mclapply(X = top_ind,
+  #                                   FUN = dart.assignment,
+  #                                   ref = ref_pops_sep,
+  #                                   mc.cores = ncores)
+  #   }
+  #
+  #   ## if windows
+  #   if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+  #
+  #     cl <- parallel::makePSOCKcluster(rep("localhost",
+  #                                          ncores))
+  #     res_tmp <- parallel::parLapply(cl = cl,
+  #                                    X = top_ind,
+  #                                    fun = dart.assignment,
+  #                                    ref = ref_pops_sep)
+  #     stopCluster(cl)
+  #   }
+  # }
 
     # if unix
     if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
@@ -122,15 +143,11 @@ runSampleAnalysis <- function(counts.file,
     ## if windows
     if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
 
-      cl <- parallel::makePSOCKcluster(rep("localhost",
-                                           ncores))
-      res_tmp <- parallel::parLapply(cl = cl,
-                                     X = top_ind,
-                                     fun = dart.assignment,
-                                     ref = ref_pops_sep)
-      stopCluster(cl)
+      res_tmp <- lapply(X = top_ind,
+                        FUN = dart.assignment,
+                        ref = ref_pops_sep)
+
     }
-  }
 
   # summary results dataframe
   TargetID.sample <- unlist(lapply(top_ind,function(x){
