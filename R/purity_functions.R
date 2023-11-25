@@ -235,19 +235,14 @@ summaryStatsVarietyGenotypes <- function(varietiesGenotypes,
 
     ## if windows
     if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
-      cl <- parallel::makePSOCKcluster(rep("localhost",
-                                           n.cores))
-
-      d <- parallel::parLapply(
-        cl = cl,
+      d <- lapply(
         X = varietiesGenotypes,
-        fun = function(v) {
+        FUN = function(v) {
           v$stats <- t(apply(as.data.frame(v$genotypes),
                              1, calcStatsMarker))
           return(v)
         }
       )
-      stopCluster(cl)
     }
   }
 
