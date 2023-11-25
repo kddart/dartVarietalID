@@ -1,4 +1,3 @@
 #' @useDynLib dartVarietalID
-#' @importFrom Rcpp evalCpp
-#' @exportPattern "^[[:alpha:]]+"
+# @exportPattern "^[[:alpha:]]+"
 NULL

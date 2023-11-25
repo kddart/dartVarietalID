@@ -1,67 +1,89 @@
-getShuffledPalette <- function(n, colorFunc = polychrome) {
-  palette = colorFunc(n)
+
+#' get Shuffled Palette
+#' @param n description
+#' @param colorFunc description
+#' @noRd
+getShuffledPalette <- function(n,
+                               colorFunc = polychrome) {
+  palette <- colorFunc(n)
   return(sample(palette[1:n]))
 }
 
-getMergedBinsClusters <-
-  function(distances,
-           method,
-           mapping = NULL,
-           coloring = NULL,
-           showLine = TRUE,
-           useAutoPar = TRUE,
-           text = NULL,
-           colorFunc = polychrome) {
-    set.seed(123)
-    hc = hclust(as.dist(distances), method = method)
+#' get Merged Bins Clusters
+#' @param distances description
+#' @param method description
+#' @param mapping description
+#' @param coloring description
+#' @param showLine description
+#' @param useAutoPar description
+#' @param text description
+#' @param colorFunc description
+#' @noRd
+getMergedBinsClusters <- function(distances,
+                                  method,
+                                  mapping = NULL,
+                                  coloring = NULL,
+                                  showLine = TRUE,
+                                  useAutoPar = TRUE,
+                                  text = NULL,
+                                  colorFunc = polychrome) {
+  set.seed(123)
+  hc <- hclust(as.dist(distances), method = method)
 
-    distancesByAxis = as.matrix(distances)
+  distancesByAxis <- as.matrix(distances)
 
-    if (!is.null(mapping)) {
-      if (!all(rownames(distances) %in% names(mapping))) {
+  if (!is.null(mapping)) {
+    if (!all(rownames(distances) %in% names(mapping))) {
+      stop("Missing mappings for: ",
+           paste(
+             rownames(distances)[rownames(distances) %in%
+                                   names(mapping)],
+             collapse = ", ",
+             sep = ", "
+           ))
+    }
+    rownames(distancesByAxis) <- mapping[rownames(distancesByAxis)]
+    colnames(distancesByAxis) <- mapping[colnames(distancesByAxis)]
+    if (!is.null(coloring)) {
+      if (!all(rownames(distances) %in%
+               names(coloring))) {
         stop("Missing mappings for: ",
              paste(
-               rownames(distances)[rownames(distances) %in% names(mapping)],
+               rownames(distances)[rownames(distances) %in%
+                                     names(mapping)],
                collapse = ", ",
                sep = ", "
              ))
       }
-      rownames(distancesByAxis) = mapping[rownames(distancesByAxis)]
-      colnames(distancesByAxis) = mapping[colnames(distancesByAxis)]
-      if (!is.null(coloring)) {
-        if (!all(rownames(distances) %in% names(coloring))) {
-          stop("Missing mappings for: ",
-               paste(
-                 rownames(distances)[rownames(distances) %in% names(mapping)],
-                 collapse = ", ",
-                 sep = ", "
-               ))
-        }
-        names(coloring) = mapping[names(coloring)]
-      }
+      names(coloring) <- mapping[names(coloring)]
     }
-
-    hc1 = hclust(as.dist(distancesByAxis), method = method)
-    dend <- as.dendrogram(hc1)
-
-    if (!is.null(coloring)) {
-      map  = hc1$labels[hc1$order]
-      unique_colors = length(unique(coloring))
-      colorMap = getShuffledPalette(n = unique_colors, colorFunc = colorFunc)
-      names(colorMap) = unique(coloring)
-      labels_colors(dend) = colorMap[coloring[map]]
-    } else{
-      map  = as.integer(factor(hc1$labels[hc1$order]))
-      map2Col = getShuffledPalette(n = length(unique(map)))
-      names(map2Col) = unique(map)
-      labels_colors(dend) = map2Col[as.character(map)]
-    }
-
-    return(list(hc = hc1, dend = dend))
   }
 
-polychrome = function (n)
-{
+  hc1 <- hclust(as.dist(distancesByAxis),
+                method = method)
+  dend <- as.dendrogram(hc1)
+
+  if (!is.null(coloring)) {
+    map <- hc1$labels[hc1$order]
+    unique_colors <- length(unique(coloring))
+    colorMap <- getShuffledPalette(n = unique_colors,
+                                   colorFunc = colorFunc)
+    names(colorMap) <- unique(coloring)
+    labels_colors(dend) <- colorMap[coloring[map]]
+  } else {
+    map <- as.integer(factor(hc1$labels[hc1$order]))
+    map2Col <- getShuffledPalette(n = length(unique(map)))
+    names(map2Col) <- unique(map)
+    labels_colors(dend) <- map2Col[as.character(map)]
+  }
+
+  return(list(hc = hc1, dend = dend))
+}
+
+#' polychrome
+#' @param n description
+#' @noRd
+polychrome <- function(n) {
   pal <- c(
     "#3283FE",
     "#FEAF16",
@@ -139,7 +161,6 @@ polychrome = function (n)
       "Brilliant_Blue",
       "Vivid_Violet"
     )
-  pal2 = colorspace::darken(pal, amount = 0.2)
-  # pie(rep(1,length(pal2)),col = pal2)
+  pal2 <- colorspace::darken(pal, amount = 0.2)
   return(rep(pal2, ceiling(n / length(pal2)))[1:n])
 }

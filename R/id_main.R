@@ -22,30 +22,40 @@
 #' @author Luis Mijangos
 #' @examples
 #'
-#' filename <- system.file('extdata','SEQ_SNPs_counts_0_Target.csv', package='dartVarietalID')
-#' info <- system.file('extdata','InfoFile_corrected.csv', package='dartVarietalID')
+#' filename <- system.file('extdata','SEQ_SNPs_counts_0_Target.csv',
+#' package='dartVarietalID')
+#' info <- system.file('extdata','InfoFile_corrected.csv',
+#' package='dartVarietalID')
 #' ID_res <- runSampleAnalysis(counts.file = filename, info.file = info,
 #' ncores = 1, pop.size = 10)
 #'
-#' @import dplyr
+#' @rawNamespace import(data.table, except = c(set,first,last,between))
+#' @rawNamespace import(colorspace, except = c(plot,show))
+#' @rawNamespace import(graphics, except = c(layout,box,grid))
+#' @rawNamespace import(DT, except = c(dataTableOutput,renderDataTable))
+#' @rawNamespace import(semantic.dashboard, except = c(column,icon,
+#' dropdown_menu,menu_item))
+#' @rawNamespace import(shiny, except = c(textInput,showNotification,
+#' incProgress,modalDialog,removeModal,sliderInput,selectInput,setProgress,
+#' fileInput,withProgress,verticalLayout,numericInput,actionButton,updateSliderInput,
+#' updateActionButton,removeNotification,textAreaInput,dateInput,Progress,
+#' checkboxInput,splitLayout,icon,updateSelectInput,flowLayout,runExample))
+#' @rawNamespace import(adegenet, except = c(plot))
+#' @rawNamespace import(dplyr, except = c(lag,filter))
+#' @rawNamespace import(dendextend, except = c(cutree))
+#' @rawNamespace import(Rcpp, except = c(.DollarNames,prompt,show))
+#' @rawNamespace import(plotly, except = c(filter))
+#' @rawNamespace import(shiny.semantic, except = c(toggle,menu))
+#' @rawNamespace import(shinyWidgets, except = c(alert))
+#' @rawNamespace import(methods, except = c(removeClass,show))
+
+
 #' @import dartR
 #' @import stats
 #' @import parallel
-#' @import data.table
-#' @import Rcpp
-#' @import shinyWidgets
-#' @import shiny
+#' @import utils
 #' @import shinyjs
 #' @import tableHTML
-#' @import colorspace
-#' @import adegenet
-#' @import utils
-#' @import plotly
-#' @import methods
-#' @import semantic.dashboard
-#' @import shiny.semantic
-#' @import DT
-#' @import dendextend
 #' @export
 
 runSampleAnalysis <- function(counts.file,
@@ -103,34 +113,6 @@ runSampleAnalysis <- function(counts.file,
       top_ind[[y]] <- pop_test_hold[1,]
     }
   }
-
-  # assigning reference to samples
-  # if(ncores == 1){
-  #   res_tmp <- lapply(X = top_ind,
-  #                     FUN = dart.assignment,
-  #                     ref = ref_pops_sep)
-  # }else{
-  #
-  #   # if unix
-  #   if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
-  #     res_tmp <- parallel::mclapply(X = top_ind,
-  #                                   FUN = dart.assignment,
-  #                                   ref = ref_pops_sep,
-  #                                   mc.cores = ncores)
-  #   }
-  #
-  #   ## if windows
-  #   if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
-  #
-  #     cl <- parallel::makePSOCKcluster(rep("localhost",
-  #                                          ncores))
-  #     res_tmp <- parallel::parLapply(cl = cl,
-  #                                    X = top_ind,
-  #                                    fun = dart.assignment,
-  #                                    ref = ref_pops_sep)
-  #     stopCluster(cl)
-  #   }
-  # }
 
     # if unix
     if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
