@@ -1,3 +1,3 @@
 #' @useDynLib dartVarietalID
-# @exportPattern "^[[:alpha:]]+"
+#' @exportPattern "^[[:alpha:]]+"
 NULL
