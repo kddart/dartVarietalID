@@ -1,10 +1,17 @@
 Package: dartVarietalID
 Type: Package
-Title: Identification of crop varieties
+Title: Identification Of Crop Varieties
 Version: 0.1.0
+Description: Assigment of samples to their closest reference.
+Authors@R: c(
+            person("Luis", "Mijangos", email="luis@diversitgyarrays.com", role=c("aut","cre")), 
+            person("Andrew", "Kowalczyk", email="andrew@diversityarrays.com",role="aut"),
+            person("Jason", "Carling", email="jason@diversityarrays.com", role="aut")
+            )
 License: GPL (>= 3)
 Encoding: UTF-8
-Depends: R (>= 3.5), adegenet (>= 2.0.0), dplyr, dartR, stats, parallel, data.table, Rcpp, shinyWidgets, shiny, shinyjs, tableHTML,colorspace, plotly,methods, semantic.dashboard, shiny.semantic,DT,dendextend
+Depends: R (>= 3.5), adegenet (>= 2.0.0)
+Imports: dplyr, dartR, stats, parallel, data.table, Rcpp, shinyWidgets, shiny, shinyjs, tableHTML,colorspace, plotly,methods, semantic.dashboard, shiny.semantic,DT,dendextend
 LazyData: true
 RoxygenNote: 7.2.3
 LinkingTo: Rcpp

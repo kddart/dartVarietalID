@@ -1,0 +1,7 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^README\.Rmd$
+^LICENSE\.md$
+^dartDistanceMatrix.o
+^dartVarietalID.so
+^RcppExports.o

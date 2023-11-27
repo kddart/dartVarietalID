@@ -6,10 +6,18 @@
 \usage{
 dartDistanceMatrix(
   genotypic_data,
-  sampleWiseAnalysis = F,
-  ncores = parallel::detectCores()
+  sampleWiseAnalysis = FALSE,
+  ncores = parallel::detectCores() - 1
 )
 }
+\arguments{
+\item{genotypic_data}{description}
+
+\item{sampleWiseAnalysis}{description}
+
+\item{ncores}{description
+Calls the DArT implementation of distance matrix}
+}
 \description{
-Calls the DArT implementation of distance matrix
+dartDistanceMatrix
 }

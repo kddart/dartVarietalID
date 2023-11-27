@@ -41,8 +41,10 @@ Main script
 }
 \examples{
 
-filename <- system.file('extdata','SEQ_SNPs_counts_0_Target.csv', package='dartVarietalID')
-info <- system.file('extdata','InfoFile_corrected.csv', package='dartVarietalID')
+filename <- system.file('extdata','SEQ_SNPs_counts_0_Target.csv',
+package='dartVarietalID')
+info <- system.file('extdata','InfoFile_corrected.csv',
+package='dartVarietalID')
 ID_res <- runSampleAnalysis(counts.file = filename, info.file = info,
 ncores = 1, pop.size = 10)
 

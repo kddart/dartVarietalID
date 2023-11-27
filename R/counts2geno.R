@@ -167,7 +167,7 @@ for (int j = 0; j < loc; j++) {
   res$other$loc.metrics <- loc_metrics
   # using "G/C" as dummy alleles
   res$loc.all <- rep("G/C", nLoc(res))
-  res <- dartR:::utils.reset.flags(res, verbose = 0)
+  res <- reset.flags(res)
   class(res) <- "dartR"
 
   return(res)

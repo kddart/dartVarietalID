@@ -186,7 +186,7 @@ NumericMatrix dartDistanceMatrixCpp(
     const LogicalVector & sampleWiseAnalysis = false,
     const IntegerVector & nThreads = 1) {
 
-  std::cout << getBitcountConfiguration() << std::endl;
+  Rcpp::Rcout << getBitcountConfiguration() << std::endl;
 
 // #if defined(__x86_64__) || defined(__x86_64)
   bool isSampleWise = sampleWiseAnalysis[0];

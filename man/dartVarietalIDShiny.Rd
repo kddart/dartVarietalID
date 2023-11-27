@@ -4,12 +4,14 @@
 \alias{dartVarietalIDShiny}
 \title{dartVarietalIDShiny}
 \usage{
-dartVarietalIDShiny(...)
+dartVarietalIDShiny()
 }
 \description{
 dartVarietalIDShiny
 }
 \examples{
+\dontrun{
 browseURL(system.file("extdata",package = "dartVarietalID")) # Open folder of example files
 dartVarietalIDShiny()
+}
 }
