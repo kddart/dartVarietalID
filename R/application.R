@@ -1,7 +1,9 @@
 #' dartVarietalIDShiny
 #' @examples
 #'\dontrun{
-#' browseURL(system.file("extdata",package = "dartVarietalID")) # Open folder of example files
+#' # Open folder of example files
+#' browseURL(system.file("extdata",package = "dartVarietalID"))
+#' # run shiny app
 #' dartVarietalIDShiny()
 #' }
 #' @export
@@ -37,6 +39,8 @@ dartVarietalIDShiny <- function() {
   input_class <- c("ui small icon input",
                    "ui fluid icon input")
 
+  addResourcePath('www','www')
+
   #######################################################################
   ############### UI ####################################################
   #######################################################################
@@ -44,11 +48,12 @@ dartVarietalIDShiny <- function() {
   ui <-
     dashboardPage(
       title = "Varietal Identification",
-
       dashboardHeader(
+        logo_align = "left",
+        logo_path = "www/DArT_logo.png",
         color = "green",
         menu_button_label = "",
-        class = "ui top attached header",
+        class="ui top attached header",
         button(
           input_id = "close",
           label = span(icon("close"), "Exit"),
@@ -227,6 +232,11 @@ dartVarietalIDShiny <- function() {
                 label = span(icon("play"), "RUN"),
                 class = "ui green button"
               ),
+              br(),
+              downloadButton("download_top","Save top references for THIS sample to csv file"),
+              br(),
+              downloadButton("download_top_all","Save top references for ALL the samples to csv file"),
+              br(),
               DT::dataTableOutput("top_ref"),
               style = "height:800px; overflow-y: scroll;overflow-x: scroll;",
               plotlyOutput("plot_pca",height="800px")
@@ -466,6 +476,7 @@ dartVarietalIDShiny <- function() {
 
     })
 
+    #download summary results
     output$download <- downloadHandler(
       filename = function(){"dartID_results.csv"},
       content = function(fname){
@@ -479,17 +490,46 @@ dartVarietalIDShiny <- function() {
 
     observeEvent(ID_res(),{
       ID.res <- ID_res()
-      output$dataList <-
-        datasetListServer(id = "dataList",
+      output$dataList <- datasetListServer(id = "dataList",
                           md_list = ID.res$res_summary$TargetID.sample)
     })
 
+    # run PCA
     observeEvent(input$run_pca, {
       mydata_tmp <- as.character(input$dataList)
       mydata_tmp2 <- res_ID$res_full[which(names(res_ID$res_full) == mydata_tmp)]
       mydata_tmp3 <- mydata_tmp2[[1]][1:input$n_ref, "RefType"]
+      top_data <- mydata_tmp2[[1]][1:input$n_ref,]
+      top_data <- top_data[,1:(ncol(top_data) -1)]
+      top_data$Probability <- round(top_data$Probability,2)
 
-      output$top_ref <- DT::renderDataTable({datatable(mydata_tmp2[[1]][1:input$n_ref,])})
+      top_data_all <- res_ID$res_full
+      top_data_all <- lapply(top_data_all,"[",1:input$n_ref,)
+      top_data_all <- lapply(1:length(top_data_all),function(x){
+        tmp <- top_data_all[[x]]
+        tmp2 <- cbind(Sample=names(top_data_all)[x],tmp)
+        })
+      top_data_all <- data.table::rbindlist(top_data_all)
+      top_data_all <- top_data_all[,1:(ncol(top_data_all) -1)]
+      top_data_all$Probability <- round(top_data_all$Probability,2)
+
+      output$top_ref <- DT::renderDataTable({datatable(top_data)})
+
+      # download top references
+      output$download_top <- downloadHandler(
+        filename = function(){paste0("dartID_top_results_",mydata_tmp,".csv")},
+        content = function(fname){
+          write.csv(top_data, fname)
+        }
+      )
+
+      # download top references for all samples
+      output$download_top_all <- downloadHandler(
+        filename = function(){paste0("dartID_top_results_all.csv")},
+        content = function(fname){
+          write.csv(top_data_all, fname)
+        }
+      )
 
       pop_ref_tmp <- res_ID$gl.references
       pop_ref <- gl.keep.pop(pop_ref_tmp,

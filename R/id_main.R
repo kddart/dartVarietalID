@@ -2,10 +2,11 @@
 #' @title Main script
 #' @description
 #' Main script
-#' @param counts.file [required].
-#' @param info.file [required].
-#' @param ncores [default parallel::detectCores() - 1].
-#' @param pop.size [default 10].
+#' @param counts.file File with count data [required].
+#' @param info.file File with information of samples and references[required].
+#' @param ncores Number of cores to run analysis
+#' [default parallel::detectCores() - 1].
+#' @param pop.size Number individuals to simulate [default 10].
 #' @details
 #' Main script
 #' @return A list with the following elements:
