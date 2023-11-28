@@ -36,14 +36,15 @@ into several intuitive tabs:
 ### Installation
 
 dartVarietalID is at the moment in a private repository. To install it,
-use auth_token with a token from <https://github.com/settings/tokens>.
+use auth_token with a token from the following link:
+<https://github.com/settings/tokens>.
 
 ``` r
 library(devtools)
 install_github("kddart/dartVarietalID", auth_token = "abc")
 ```
 
-For dartVarietalID to work the R package dartR needs to be installed.
+For dartVarietalID to work, the R package dartR needs to be installed.
 Please consult [this installation
 tutorial](https://github.com/green-striped-gecko/dartR/wiki/Installation-tutorial)
 to install dartR.
@@ -148,34 +149,35 @@ This step involves four stages:
 
 The program uses a simulation method to represent the genetic variation
 present in both references and samples. Specifically, it creates a
-population of n diploid individuals (organisms carrying two copies of
+population of *n* diploid individuals (organisms carrying two copies of
 each chromosome) for each sample and reference. In this model, the loci
-are assumed to have two alleles: a reference allele (“A”) with a
-frequency within the population denoted by p and an alternative allele
-(“a”) with a frequency within the population denoted by q.
+are assumed to have two alleles: a reference allele (“**A**”) with a
+frequency within the population denoted by *p* and an alternative allele
+(“**a**”) with a frequency within the population denoted by *q*.
 
 To simulate each individual in each population, the program conducts a
-Bernoulli trial (an experiment with two possible outcomes, “success” and
-“failure”) for every locus. In this case, success means inheriting
-allele “A”, while failure denotes inheriting allele “a”. The probability
-of success and failure is given by p and q, respectively. Since
-simulated individuals are diploids, the program repeats this process
-twice (once for each chromosome). This way, all loci are close to
-linkage and Hardy-Weinberg equilibrium within each simulated population.
-The program treats as missing data those loci with 0 counts for allele
-“A” and 0 counts for allele “a”.
+**Bernoulli trial** (an experiment with two possible outcomes,
+“*success*” and “*failure*”) for every locus. In this case, success
+means inheriting allele “A”, while failure denotes inheriting allele
+“a”. The probability of success and failure is given by *p* and *q*,
+respectively. Since simulated individuals are diploids, the program
+repeats this process twice (once for each chromosome). This way, all
+loci are close to **linkage equilibrium** and **Hardy-Weinberg
+equilibrium** within each simulated population. The program treats as
+missing data those loci with 0 counts for allele “A” and 0 counts for
+allele “a”.
 
 **2 Selection of a Representative Individual for Each Sample**
 
 To find the most representative individual for the simulated population
-of each sample, the program first performs a Principal Component
-Analysis (PCA). PCA is a statistical technique used to reduce the
+of each sample, the program first performs a **Principal Component
+Analysis (PCA)**. PCA is a statistical technique used to reduce the
 dimensionality of large datasets while retaining most of the variability
 in the data. PCA transforms the data into linearly uncorrelated
 variables known as principal components (PC). Plotting the first PC
 allows each individual in the population to be represented as a point in
 this reduced dimensional space. Then, the program calculates the
-Mahalanobis distance (a measure of distance that accounts for the
+**Mahalanobis distance** (a measure of distance that accounts for the
 variance and covariance structure of the data) of each individual from
 the population’s mean (or centroid) in the PCA-transformed space. The
 individual with the smallest Mahalanobis distance is deemed the most
@@ -192,8 +194,8 @@ and the absence of evolutionary forces. The equation is expressed as:
 
 **p^2 + 2pq + q^2 = 1,**
 
-where p and q denote the frequency of two alleles, referred to as “A”
-and “a,” within a given population. In this context:
+where *p* and *q* denote the frequency of two alleles, referred to as
+“A” and “a,” within a given population. In this context:
 
 - **p^2** represents the frequency of the homozygous genotype for the
   reference allele (AA).
@@ -213,17 +215,18 @@ The matching probability reported is the average across all loci.
 **4 Purity Assessment of Samples Relative to Their Best Match
 Reference**
 
-The final step involves evaluating each sample’s genetic ‘purity’ in
+The final step involves evaluating each sample’s genetic ‘*purity*’ in
 relation to its best-matched reference variety. Three calculations are
 presented:
 
 - **Absent score.** The proportion of alleles over the available marker
-  was set absent from that matched reference profile (A discretised
-  representation of that variety reference), which was also absent from
+  set that is absent from the matched reference profile (a discretised
+  representation of that variety reference), which is also absent from
   the test sample.
 - **Present score.** The proportion of alleles over the available marker
-  set of that matched reference profile (A discretised representation of
-  that variety reference) is also present in the test sample.
+  set that is present from the matched reference profile (a discretised
+  representation of that variety reference), which is also present in
+  the test sample.
 - **Purity Percentage.** Absent score as a percentage. Under the
   assumption that we have matched the variety, purity is reduced by
   introducing additional alleles from one or more varieties, thus
@@ -232,17 +235,18 @@ presented:
   varieties were mixed. Therefore, the presence score is not used in
   purity calculation.
 
-Note: Absent score and present score together could be used as a form of
-a distance metric.
+Note: Absent and present scores could be used together as a form of a
+distance metric.
 
 ### **Visualisation Tab**
 
 Utilising PCA, this tab presents the spatial genetic variation of a
-sample alongside its closest references. These PCA plots are
-interactive, allowing rotation, zoom, and exploration of data points.
-Users can export these visualisations as static images or interactive
-HTML files. Additionally, tables detailing the matching probability for
-each sample can be saved in CSV format.
+sample alongside its closest references. PCA plots are interactive,
+allowing rotation, zoom, and exploration of data points. Users can
+export these visualisations as static images or interactive HTML files.
+Additionally, tables detailing the matching probability of the top
+matching references for each sample and for all the samples can be saved
+in CSV format.
 
 <p align="center">
 <img src='www/Visualisation_1.png' width="800"/>
