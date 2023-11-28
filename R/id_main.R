@@ -78,12 +78,29 @@ runSampleAnalysis <- function(counts.file,
   test_pop_sam <- dartR::gl.keep.pop(ref_sam_pops,
                                      pop.list = "sample",
                                      verbose = 0)
+
   pop(test_pop_ref) <- test_pop_ref$other$ind.metrics$RefType
   pop(test_pop_sam) <- test_pop_sam$other$ind.metrics$TargetID
 
   # Separating populations
   sam_pops_sep <- seppop(test_pop_sam)
   ref_pops_sep <- seppop(test_pop_ref)
+
+  #identify samples with all missing data
+  NAs <-
+    lapply(sam_pops_sep, function(x) {
+      sum(sapply(x@gen, function(e) {
+        length(e@NA.posi)
+      }))
+    })
+  #total number of genotypes
+  total_geno <- nInd(sam_pops_sep[[1]]) * nLoc(sam_pops_sep[[1]])
+  all_NAs <-  which(NAs == total_geno)
+
+  # remove sample if all data is missing
+  if (length(all_NAs) > 0) {
+    sam_pops_sep <- sam_pops_sep[-(all_NAs)]
+  }
 
   # selecting the representative individual from the sample using PCA
   top_ind <- as.list(1:length(sam_pops_sep))
@@ -101,13 +118,16 @@ runSampleAnalysis <- function(counts.file,
     # if individuals are different
     if (test_var > 0) {
       pcoa <- adegenet::glPca(pop_test,
-                    nf = 3,
-                    loadings = FALSE)
+                              nf = 3,
+                              loadings = FALSE)
 
       pcoa_scores <- pcoa$scores
       means <- colMeans(pcoa_scores)
       covariance <- stats::cov(pcoa_scores)
-      D <- stats::mahalanobis(pcoa_scores, means, covariance, toll = 1e-20)
+      D <- stats::mahalanobis(x = pcoa_scores,
+                              center = means,
+                              cov = covariance,
+                              toll = 1e-20)
       top_ind[[y]] <- pop_test_hold[which.min(D),]
       # if individuals are the same, get the first individual
     } else{
@@ -115,26 +135,26 @@ runSampleAnalysis <- function(counts.file,
     }
   }
 
-    # if unix
-    if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
-      res_tmp <- parallel::mclapply(X = top_ind,
-                                    FUN = dart.assignment,
-                                    ref = ref_pops_sep,
-                                    mc.cores = ncores)
-    }
+  # if unix
+  if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+    res_tmp <- parallel::mclapply(X = top_ind,
+                                  FUN = dart.assignment,
+                                  ref = ref_pops_sep,
+                                  mc.cores = ncores)
+  }
 
-    ## if windows
-    if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+  ## if windows
+  if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
 
-      res_tmp <- lapply(X = top_ind,
-                        FUN = dart.assignment,
-                        ref = ref_pops_sep)
+    res_tmp <- lapply(X = top_ind,
+                      FUN = dart.assignment,
+                      ref = ref_pops_sep)
 
-    }
+  }
 
   # summary results dataframe
   TargetID.sample <- unlist(lapply(top_ind,function(x){
-x$other$ind.metrics$TargetID
+    x$other$ind.metrics$TargetID
   }))
   Genotype.sample <- unlist(lapply(top_ind,function(x){
     x$other$ind.metrics$Genotype
@@ -161,7 +181,7 @@ x$other$ind.metrics$TargetID
 
   # Calculating purity
   genotypic_counts <- ds14.genotypic(ds14.read(counts.file))
-  infoFile <- readTargetInfoFile(info.file)
+  infoFile <- readTargetInfoFile(file = info.file)
   assigned_test_reference <- res_summary$RefType.reference
   names(assigned_test_reference) <- res_summary$TargetID.sample
   res_purity <- calculatePurity(genotypic_counts,
