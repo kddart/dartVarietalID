@@ -7,9 +7,10 @@
 dart.assignment(ref, unknown)
 }
 \arguments{
-\item{ref}{Genlight object containing the reference data [required].}
+\item{ref}{A list of genlight objects each containing one reference
+[required].}
 
-\item{unknown}{Genlight object containing the individual to be assigned to a
+\item{unknown}{A genlight object containing the sample to be assigned to a
 reference [required].}
 }
 \value{
@@ -19,10 +20,4 @@ A \code{data.frame} consisting of assignment probabilities for each
 \description{
 This function takes one sample and estimates its probability of coming from
 a reference
-}
-\details{
-This function is a re-implementation of the function multilocus_assignment
- from package gstudio.
- Description of the method used in this function can be found at:
-https://dyerlab.github.io/applied_population_genetics/population-assignment.html
 }

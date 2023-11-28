@@ -12,13 +12,14 @@ runSampleAnalysis(
 )
 }
 \arguments{
-\item{counts.file}{[required].}
+\item{counts.file}{File with count data [required].}
 
-\item{info.file}{[required].}
+\item{info.file}{File with information of samples and references[required].}
 
-\item{ncores}{[default parallel::detectCores() - 1].}
+\item{ncores}{Number of cores to run analysis
+[default parallel::detectCores() - 1].}
 
-\item{pop.size}{[default 10].}
+\item{pop.size}{Number individuals to simulate [default 10].}
 }
 \value{
 A list with the following elements:

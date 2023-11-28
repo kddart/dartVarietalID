@@ -65,7 +65,7 @@ browseURL(system.file("extdata",package = "dartVarietalID"))
 
 ## Detailed workflow
 
-### Inputs Tab
+### **Inputs Tab**
 
 Users are required to upload three CSV files:
 
@@ -92,7 +92,7 @@ and the column “SampleType” is filled with the word “UNKNOWN”.
 Files can be easily uploaded via drag-and-drop or through a file
 explorer via the `Browse` button.
 
-### References Check Tab
+### **References Check Tab**
 
 After clicking the `RUN` button, a dendrogram shows the genetic distance
 between the references using the complete linkage method to find similar
@@ -129,7 +129,7 @@ the info file.
 <img src='www/references_check_4.png' width="800"/>
 </p>
 
-### Reference Identification Tab
+### **Reference Identification Tab**
 
 This step involves four stages:
 
@@ -144,7 +144,7 @@ This step involves four stages:
 <img src='www/References_ID.png' width="800"/>
 </p>
 
-**Simulation of Populations of Diploid Organisms**
+**1 Simulation of Populations of Diploid Organisms**
 
 The program uses a simulation method to represent the genetic variation
 present in both references and samples. Specifically, it creates a
@@ -165,7 +165,7 @@ linkage and Hardy-Weinberg equilibrium within each simulated population.
 The program treats as missing data those loci with 0 counts for allele
 “A” and 0 counts for allele “a”.
 
-**Selection of a Representative Individual for Each Sample**
+**2 Selection of a Representative Individual for Each Sample**
 
 To find the most representative individual for the simulated population
 of each sample, the program first performs a Principal Component
@@ -181,16 +181,16 @@ the population’s mean (or centroid) in the PCA-transformed space. The
 individual with the smallest Mahalanobis distance is deemed the most
 representative of the population’s genetic diversity.
 
-**Calculation of Matching Probability of Each Representative Individual
-to Each Reference**
+**3 Calculation of Matching Probability of Each Representative
+Individual to Each Reference**
 
-The Hardy-Weinberg Equilibrium (HWE) principle is used to calculate the
-matching probability between a sample and a reference. HWE describes the
-expected distribution of genotype frequencies in a population under
+The **Hardy-Weinberg Equilibrium (HWE)** principle is used to calculate
+the matching probability between a sample and a reference. HWE describes
+the expected distribution of genotype frequencies in a population under
 specific conditions, including random mating, a large population size,
 and the absence of evolutionary forces. The equation is expressed as:
 
-                         `p^2 + 2pq + q^2 = 1`,
+**p^2 + 2pq + q^2 = 1,**
 
 where p and q denote the frequency of two alleles, referred to as “A”
 and “a,” within a given population. In this context:
@@ -210,31 +210,32 @@ genotype’s frequency within that reference population.
 
 The matching probability reported is the average across all loci.
 
-**Purity Assessment of Samples Relative to Their Best Match Reference**
+**4 Purity Assessment of Samples Relative to Their Best Match
+Reference**
 
 The final step involves evaluating each sample’s genetic ‘purity’ in
 relation to its best-matched reference variety. Three calculations are
 presented:
 
-1.  Absent score: The proportion of alleles over the available marker
-    was set absent from that matched reference profile (A discretised
-    representation of that variety reference), which was also absent
-    from the test sample.
-2.  Present score: The proportion of alleles over the available marker
-    set of that matched reference profile (A discretised representation
-    of that variety reference) is also present in the test sample.
-3.  Purity Percentage: Absent score as a percentage. Under the
-    assumption that we have matched the variety, purity is reduced by
-    introducing additional alleles from one or more varieties, thus
-    decreasing the absence score. In this case, the presence score would
-    not be affected unless impurity levels were very high, i.e. many
-    varieties were mixed. Therefore, the presence score is not used in
-    purity calculation.
+- **Absent score.** The proportion of alleles over the available marker
+  was set absent from that matched reference profile (A discretised
+  representation of that variety reference), which was also absent from
+  the test sample.
+- **Present score.** The proportion of alleles over the available marker
+  set of that matched reference profile (A discretised representation of
+  that variety reference) is also present in the test sample.
+- **Purity Percentage.** Absent score as a percentage. Under the
+  assumption that we have matched the variety, purity is reduced by
+  introducing additional alleles from one or more varieties, thus
+  decreasing the absence score. In this case, the presence score would
+  not be affected unless impurity levels were very high, i.e. many
+  varieties were mixed. Therefore, the presence score is not used in
+  purity calculation.
 
 Note: Absent score and present score together could be used as a form of
 a distance metric.
 
-### Visualisation Tab
+### **Visualisation Tab**
 
 Utilising PCA, this tab presents the spatial genetic variation of a
 sample alongside its closest references. These PCA plots are

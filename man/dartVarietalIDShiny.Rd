@@ -11,7 +11,9 @@ dartVarietalIDShiny
 }
 \examples{
 \dontrun{
-browseURL(system.file("extdata",package = "dartVarietalID")) # Open folder of example files
+# Open folder of example files
+browseURL(system.file("extdata",package = "dartVarietalID"))
+# run shiny app
 dartVarietalIDShiny()
 }
 }
