@@ -149,11 +149,15 @@ This step involves four stages:
 
 The program uses a simulation method to represent the genetic variation
 present in both references and samples. Specifically, it creates a
-population of *n* diploid individuals (organisms carrying two copies of
-each chromosome) for each sample and reference. In this model, the loci
-are assumed to have two alleles: a reference allele (“**A**”) with a
-frequency within the population denoted by *p* and an alternative allele
-(“**a**”) with a frequency within the population denoted by *q*.
+population of *n* diploid individuals (i.e. organisms carrying two
+copies of each chromosome) for each sample and reference. In this model,
+the loci are assumed to have two alleles: a reference allele (“**A**”)
+with a frequency within the population denoted by *p* and an alternative
+allele (“**a**”) with a frequency within the population denoted by *q*.
+
+For instance, a locus with 7 counts for the first allele and with 3
+counts for the second allele, allele frequencies for that locus are: *p*
+= 0.7 and *q* = 0.3.
 
 To simulate each individual in each population, the program conducts a
 **Bernoulli trial** (an experiment with two possible outcomes,
@@ -192,25 +196,39 @@ the expected distribution of genotype frequencies in a population under
 specific conditions, including random mating, a large population size,
 and the absence of evolutionary forces. The equation is expressed as:
 
-**p^2 + 2pq + q^2 = 1,**
+***p*<sup>2</sup> + 2 *pq* + *q*<sup>2</sup> = 1,**
 
 where *p* and *q* denote the frequency of two alleles, referred to as
 “A” and “a,” within a given population. In this context:
 
-- **p^2** represents the frequency of the homozygous genotype for the
-  reference allele (AA).
-- **2pq** represents the frequency of the heterozygous genotype (Aa).
-- **q^2** represents the frequency of the homozygous genotype for the
-  alternative allele (aa).
+- ***p*<sup>2</sup>** represents the frequency of the homozygous
+  genotype for the reference allele (AA).
+- **2 *pq*** represents the frequency of the heterozygous genotype (Aa).
+- ***q*<sup>2</sup>** represents the frequency of the homozygous
+  genotype for the alternative allele (aa).
 
-When applying the HWE principle to determine the matching probability
-between a sample and a reference, the focus shifts to each locus within
-the representative individual of a sample. The probability that the
-genotype at a particular locus in this individual aligns with those in
-the simulated population of each reference is deduced by referencing the
-genotype’s frequency within that reference population.
+To calculate the matching probability at each locus for a representative
+individual’s genotype, we look at the HWE-derived frequencies within the
+reference population.
 
-The matching probability reported is the average across all loci.
+Consider a scenario where the reference population has allele
+frequencies of *p* = 0.3 and *q* = 0.7. Under HWE, the population’s
+genotype frequencies would be AA = ***p*<sup>2</sup>** = 0.09, Aa = **2
+*pq*** = 0.42, and aa = ***q*<sup>2</sup>** = 0.49. Therefore, the
+probability of a homozygous genotype for the alternative allele (aa) in
+the representative individual coming from this reference population is
+0.49, denoted by ***q*<sup>2</sup>**.
+
+Should the genotype of the representative individual be non-existent in
+the reference population — such as when the reference population is
+fixed for one allele (AA), and the representative individual is
+homozygous for the opposite allele (aa), a penalty is applied. This is
+quantified by assigning a probability of -1 for that locus, signifying a
+complete genetic discordance.
+
+The overall matching probability is then derived by averaging the
+probabilities across all loci after omitting any locus with missing data
+to maintain the integrity of the analysis.
 
 **4 Purity Assessment of Samples Relative to Their Best Match
 Reference**

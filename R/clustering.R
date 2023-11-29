@@ -1,24 +1,10 @@
 
-#' get Shuffled Palette
-#' @param n description
-#' @param colorFunc description
-#' @noRd
 getShuffledPalette <- function(n,
                                colorFunc = polychrome) {
   palette <- colorFunc(n)
   return(sample(palette[1:n]))
 }
 
-#' get Merged Bins Clusters
-#' @param distances description
-#' @param method description
-#' @param mapping description
-#' @param coloring description
-#' @param showLine description
-#' @param useAutoPar description
-#' @param text description
-#' @param colorFunc description
-#' @noRd
 getMergedBinsClusters <- function(distances,
                                   method,
                                   mapping = NULL,
@@ -80,9 +66,6 @@ getMergedBinsClusters <- function(distances,
   return(list(hc = hc1, dend = dend))
 }
 
-#' polychrome
-#' @param n description
-#' @noRd
 polychrome <- function(n) {
   pal <- c(
     "#3283FE",

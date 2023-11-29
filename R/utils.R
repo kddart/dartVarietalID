@@ -1,7 +1,4 @@
-#' read Target InfoFile
-#' @param file file name
-#' @param filterFields fields
-#' @noRd
+
 readTargetInfoFile <- function(file,
                                filterFields = c("Genotype",
                                                 "ExPlateBarcode",
@@ -64,13 +61,6 @@ readTargetInfoFile <- function(file,
   return(obj)
 }
 
-#' sort By RefType
-#' @param table description
-#' @param refField description
-#' @param barcodeField description
-#' @param wellField description
-#' @param priorOrderFields description
-#' @noRd
 sortByRefTypeBarcodeWell_2 <- function(table,
                                        refField = "RefType",
                                        barcodeField = "ExPlateBarcode",
@@ -117,4 +107,31 @@ sortByRefTypeBarcodeWell_2 <- function(table,
     }
     return(tr[,!colnames(tr) %in% c("wellRows", "wellColumns")])
   }
+}
+
+gl2alleles <- function (gl) {
+  x <- as.matrix(gl)
+  homs1 <-
+    paste(substr(gl@loc.all, 1, 1), "/", substr(gl@loc.all, 1, 1), sep = "")
+  hets <- gl@loc.all
+  homs2 <-
+    paste(substr(gl@loc.all, 3, 3), "/", substr(gl@loc.all, 3, 3), sep = "")
+  xx <- matrix(NA, ncol = ncol(x), nrow = nrow(x))
+  for (i in 1:nrow(x)) {
+    for (ii in 1:ncol(x)) {
+      inp <- x[i, ii]
+      if (!is.na(inp)) {
+        if (inp == 0)
+          xx[i, ii] <- homs1[ii]
+        else if (inp == 1)
+          xx[i, ii] <- hets[ii]
+        else if (inp == 2)
+          xx[i, ii] <- homs2[ii]
+      } else{
+        xx[i, ii] <- NA
+      }
+    }
+  }
+  xx <- gsub("/", ":", xx)
+  return(xx)
 }

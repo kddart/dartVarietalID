@@ -14,34 +14,8 @@
 #' @export
 
 dart.assignment <- function(ref,
-                            unknown) {
-
-  gl2alleles <- function (gl) {
-    x <- as.matrix(gl)
-    homs1 <-
-      paste(substr(gl@loc.all, 1, 1), "/", substr(gl@loc.all, 1, 1), sep = "")
-    hets <- gl@loc.all
-    homs2 <-
-      paste(substr(gl@loc.all, 3, 3), "/", substr(gl@loc.all, 3, 3), sep = "")
-    xx <- matrix(NA, ncol = ncol(x), nrow = nrow(x))
-    for (i in 1:nrow(x)) {
-      for (ii in 1:ncol(x)) {
-        inp <- x[i, ii]
-        if (!is.na(inp)) {
-          if (inp == 0)
-            xx[i, ii] <- homs1[ii]
-          else if (inp == 1)
-            xx[i, ii] <- hets[ii]
-          else if (inp == 2)
-            xx[i, ii] <- homs2[ii]
-        } else{
-          xx[i, ii] <- NA
-        }
-      }
-    }
-    xx <- gsub("/", ":", xx)
-    return(xx)
-  }
+                            unknown
+                            ) {
 
   unknown_pop <- data.frame(gl2alleles(unknown))
 
@@ -101,7 +75,7 @@ df_assign[which(df_assign$a1 != df_assign$a2), c("hom1", "hom2")] <- 0
 df_assign$prob <- df_assign$hom1 + df_assign$hom2 + df_assign$het
 # set NA if the loci of the sample is missing
 df_assign[which(is.na(df_assign$a1)), "prob"] <- NA
-# set -1 to samples that have probability of 0, i.e. if the reference is fixed
+# set -1 to loci that have probability of 0, i.e. if the reference is fixed
 # for one allele and the sample is homozygote for the the other allele
 df_assign[which(df_assign$prob == 0), "prob"] <- -1
 # get the number of loci that do not have missing data in both, the sample and
@@ -118,9 +92,7 @@ ret[popx, "Probability"] <- sum(df_assign$prob, na.rm = TRUE)/ n_loc
   }
 # order references by probability
 ret <- ret[order(-ret$Probability), ]
-ret$Posterior <- ret$Probability / sum(ret$Probability)
-ret$Posterior <- round(ret$Posterior, 5)
-ret$Probability <- round(ret$Probability, 5) * 100
+ret$Probability <- round(ret$Probability, 4) * 100
 
   return(ret)
 

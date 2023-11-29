@@ -76,7 +76,7 @@ dartVarietalIDShiny <- function() {
             tabName = "ref_check"
           ),
           menuItem(
-            text = span(icon("filter"), "Reference Identification"),
+            text = span(icon("fingerprint"), "Reference Identification"),
             tabName = "ref_id"
           ),
           menuItem(
@@ -469,8 +469,8 @@ dartVarietalIDShiny <- function() {
       counts_path <- input$counts_file
       info_path <- input$info_file
       res_ID <<- runSampleAnalysis(counts.file = counts_path$datapath,
-                          info.file = info_path$datapath,
-                          pop.size = input$pop_size)
+                                     info.file = info_path$datapath,
+                                     pop.size = input$pop_size)
       ID_res(res_ID)
       output$res.ID <- DT::renderDataTable({datatable(res_ID$res_summary)})
 
@@ -500,7 +500,6 @@ dartVarietalIDShiny <- function() {
       mydata_tmp2 <- res_ID$res_full[which(names(res_ID$res_full) == mydata_tmp)]
       mydata_tmp3 <- mydata_tmp2[[1]][1:input$n_ref, "RefType"]
       top_data <- mydata_tmp2[[1]][1:input$n_ref,]
-      top_data <- top_data[,1:(ncol(top_data) -1)]
       top_data$Probability <- round(top_data$Probability,2)
 
       top_data_all <- res_ID$res_full
@@ -510,7 +509,6 @@ dartVarietalIDShiny <- function() {
         tmp2 <- cbind(Sample=names(top_data_all)[x],tmp)
         })
       top_data_all <- data.table::rbindlist(top_data_all)
-      top_data_all <- top_data_all[,1:(ncol(top_data_all) -1)]
       top_data_all$Probability <- round(top_data_all$Probability,2)
 
       output$top_ref <- DT::renderDataTable({datatable(top_data)})

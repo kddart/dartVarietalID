@@ -1,6 +1,4 @@
-#' verify
-#' @param report file name
-#' @noRd
+
 ds14.verify <- function(report) {
 
   if (report[1, 1] != "*") {
@@ -32,9 +30,6 @@ ds14.verify <- function(report) {
   )
 }
 
-#' read
-#' @param file file name
-#' @noRd
 ds14.read <- function(file) {
   if (is.character(file)) {
     if (file.exists(file)) {
@@ -76,12 +71,6 @@ ds14.read <- function(file) {
   return(report)
 }
 
-#' subMeta
-#' @param report description
-#' @param field description
-#' @param data description
-#' @param sampleField description
-#' @noRd
 ds14.subMeta <- function(report,
                          field,
                          data,
@@ -123,9 +112,6 @@ ds14.subMeta <- function(report,
   return(report)
 }
 
-#' parseDf
-#' @param df description
-#' @noRd
 parseDf <- function(df) {
   for (i in 1:ncol(df)) {
     df[, i] <- as.character(df[, i])
@@ -136,10 +122,6 @@ parseDf <- function(df) {
   return(df)
 }
 
-#' genotypic
-#' @param report description
-#' @param sampleHeader description
-#' @noRd
 ds14.genotypic <- function(report,
                            sampleHeader = FALSE) {
   start <- ds14.verify(report)
@@ -157,10 +139,6 @@ ds14.genotypic <- function(report,
   )
 }
 
-#' marker Meta
-#' @param report description
-#' @param sampleHeader description
-#' @noRd
 ds14.markerMeta <- function(report,
                             sampleHeader = FALSE) {
   start <- ds14.verify(report)
@@ -176,10 +154,6 @@ ds14.markerMeta <- function(report,
   return(parseDf(df))
 }
 
-#' sample Meta
-#' @param report description
-#' @param sampleHeader description
-#' @noRd
 ds14.sampleMeta <- function(report,
                             sampleHeader = FALSE) {
   start <- ds14.verify(report)
@@ -204,13 +178,6 @@ ds14.sampleMeta <- function(report,
   return(df)
 }
 
-#' addMeta
-#' @param report description
-#' @param field description
-#' @param data description
-#' @param afterField description
-#' @param sampleField description
-#' @noRd
 ds14.addMeta <- function(report,
                          field,
                          data,
@@ -272,11 +239,6 @@ ds14.addMeta <- function(report,
   return(report)
 }
 
-#' removeMeta
-#' @param report description
-#' @param field description
-#' @param sampleField description
-#' @noRd
 ds14.removeMeta <- function(report,
                             field,
                             sampleField = FALSE) {
@@ -313,10 +275,6 @@ ds14.removeMeta <- function(report,
   return(report)
 }
 
-#' as String Matrix
-#' @param m description
-#' @param na description
-#' @noRd
 asStringMatrix <- function(m,
                            na = "") {
   m <- apply(m, 2, as.character)
@@ -324,10 +282,6 @@ asStringMatrix <- function(m,
   return(m)
 }
 
-#' write
-#' @param report description
-#' @param file description
-#' @noRd
 ds14.write <- function(report,
                        file) {
   verify <- ds14.verify(report)
@@ -346,11 +300,6 @@ ds14.write <- function(report,
   )
 }
 
-#' sort
-#' @param report description
-#' @param names description
-#' @param sampleField description
-#' @noRd
 ds14.sort <- function(report,
                       names,
                       sampleField = FALSE) {
@@ -424,14 +373,6 @@ ds14.sort <- function(report,
   return(report)
 }
 
-#' extract Genotypic Data
-#' @param report description
-#' @param sampleIDRow description
-#' @param markerIDColumn description
-#' @param startGenotypicRow description
-#' @param startGenotypicColumn description
-#' @param addTag description
-#' @noRd
 extractGenotypicData <- function(report,
                                  sampleIDRow,
                                  markerIDColumn,

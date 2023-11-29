@@ -1,10 +1,3 @@
-
-#' calculate Purity
-#' @param genotypic_counts file name
-#' @param infoFile fields
-#' @param assigned_test_reference fields
-#' @param ncores fields
-#' @noRd
 calculatePurity <- function(genotypic_counts,
                             infoFile,
                             assigned_test_reference,
@@ -38,10 +31,6 @@ calculatePurity <- function(genotypic_counts,
   }))
 }
 
-#' extract Variety Genotypes
-#' @param genotypes file name
-#' @param targets fields
-#' @noRd
 extractVarietyGenotypesAsUnknown <- function(genotypes,
                                              targets) {
   return(lapply(targets, function(x) {
@@ -62,10 +51,6 @@ extractVarietyGenotypesAsUnknown <- function(genotypes,
   }))
 }
 
-#' profile Sample Against Variety
-#' @param sample file name
-#' @param discretise_variety fields
-#' @noRd
 profileSampleAgainstVariety <- function(sample,
                                         discretise_variety) {
     obj <- {}
@@ -132,11 +117,6 @@ profileSampleAgainstVariety <- function(sample,
 
   }
 
-#' discretise Variety Mean And NZ Thresh
-#' @param variety file name
-#' @param presenceMeanCountThreshold fields
-#' @param absentThresholdMean fields
-#' @noRd
 discretiseVarietyMeanAndNZThresh <- function(variety,
                                              presenceMeanCountThreshold = 5,
                                              absentThresholdMean = 0.1) {
@@ -203,12 +183,8 @@ discretiseVarietyMeanAndNZThresh <- function(variety,
   return(obj)
 }
 
-#' summary Stats Variety Genotypes
-#' @param varietiesGenotypes file name
-#' @param n.cores fields
-#' @noRd
 summaryStatsVarietyGenotypes <- function(varietiesGenotypes,
-                                         n.cores = n.cores) {
+                                         n.cores) {
   if (n.cores == 1) {
     d <- lapply(
       X = varietiesGenotypes,
@@ -250,9 +226,6 @@ summaryStatsVarietyGenotypes <- function(varietiesGenotypes,
 
 }
 
-#' calculate Stats Marker
-#' @param m file
-#' @noRd
 calcStatsMarker <- function(m) {
   return(c(
     mean = mean(m),
@@ -265,10 +238,6 @@ calcStatsMarker <- function(m) {
 
 }
 
-#' extract Variety Genotypes
-#' @param genotypes file name
-#' @param meta fields
-#' @noRd
 extractVarietyGenotypes <- function(genotypes,
                                     meta) {
   varieties <- unique(as.character(meta$RefType))

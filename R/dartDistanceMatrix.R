@@ -1,9 +1,3 @@
-#' dartDistanceMatrix
-#' @param genotypic_data description
-#' @param sampleWiseAnalysis description
-#' @param ncores description
-#' Calls the DArT implementation of distance matrix
-#' @export
 
 dartDistanceMatrix <- function(genotypic_data,
                                sampleWiseAnalysis = FALSE,

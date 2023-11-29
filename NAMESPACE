@@ -2,7 +2,6 @@
 
 export(counts2geno)
 export(dart.assignment)
-export(dartDistanceMatrix)
 export(dartVarietalIDShiny)
 export(read.dart.counts)
 export(runSampleAnalysis)
