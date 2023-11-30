@@ -160,7 +160,7 @@ Note: Absent and present scores could be used together as a form of a distance m
 
 ### **Visualisation Tab**
 
-Utilising PCA, this tab presents the spatial genetic variation of a sample alongside its closest references. PCA plots are interactive, allowing rotation, zoom, and exploration of data points. Users can export these visualisations as static images or interactive HTML files. Additionally, tables detailing the matching probability of the top matching references for each sample and for all the samples can be saved in CSV format.
+Utilising PCA, this tab presents the spatial genetic variation of a sample alongside its closest references. PCA plots are interactive, allowing rotation, zoom, and exploration of data points. Users can export these visualisations as static images. Additionally, tables detailing the matching probability of the top matching references for each sample and for all the samples can be saved in CSV format.
 
 <p align="center">
 <img src='www/Visualisation_1.png' width="800"/>

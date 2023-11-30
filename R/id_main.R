@@ -135,21 +135,14 @@ runSampleAnalysis <- function(counts.file,
     }
   }
 
-
   # if unix
   if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
 
-    system.time(
-    res <- dart.assignment(ref = ref_pops_sep,unknown = top_ind[[1]])
-   )
-
-    time_1 <- system.time(
     res_tmp <- parallel::mclapply(X = top_ind,
                                   FUN = dart.assignment,
                                   ref = ref_pops_sep,
-                                  mc.cores = ncores
-                                  )
-    )
+                                  mc.cores = ncores)
+
   }
 
   ## if windows

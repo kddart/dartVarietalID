@@ -466,6 +466,7 @@ dartVarietalIDShiny <- function() {
     #######################################################################
 
     observeEvent(input$run_id, {
+
       counts_path <- input$counts_file
       info_path <- input$info_file
       res_ID <<- runSampleAnalysis(counts.file = counts_path$datapath,

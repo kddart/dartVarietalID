@@ -14,8 +14,7 @@
 #' @export
 
 dart.assignment <- function(ref,
-                            unknown
-                            ) {
+                            unknown) {
 
   unknown_pop <- data.frame(gl2alleles(unknown))
 
