@@ -206,6 +206,13 @@ runSampleAnalysis <- function(counts.file,
                "purityPercent")
   res_summary[which(res_summary$NA.percentage>50),col_NAs ] <- NA
 
+  res_summary$NA.percentage <- round(res_summary$NA.percentage, 2)
+  res_summary$Probability.reference <- round(res_summary$Probability.reference, 2)
+  res_summary$absent_score <- round(res_summary$absent_score, 2)
+  res_summary$present_score <- round(res_summary$present_score, 2)
+  res_summary$purityPercent <- round(res_summary$purityPercent, 2)
+
+
   return(list(
     res_summary = res_summary,
     res_full = res_tmp,

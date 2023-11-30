@@ -58,7 +58,7 @@ library(dartVarietalID)
 dartVarietalIDShiny()
 ```
 
-You can open a folder with example datasets here:
+You can open a folder with example datasets by typing in the R console:
 
 ``` r
 browseURL(system.file("extdata",package = "dartVarietalID"))

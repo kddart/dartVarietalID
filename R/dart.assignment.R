@@ -92,7 +92,7 @@ ret[popx, "Probability"] <- sum(df_assign$prob, na.rm = TRUE)/ n_loc
   }
 # order references by probability
 ret <- ret[order(-ret$Probability), ]
-ret$Probability <- round(ret$Probability, 4) * 100
+ret$Probability <- round(ret$Probability * 100, 2)
 
   return(ret)
 
