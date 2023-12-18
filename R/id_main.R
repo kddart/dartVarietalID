@@ -194,15 +194,11 @@ runSampleAnalysis <- function(counts.file,
   res_summary <- cbind(res_summary,res_purity)
   # Setting NAs to samples with more than 50% of missing data
   col_NAs <- c("Probability.reference",
-               "absent_score",
-               "present_score",
                "purityPercent")
   res_summary[which(res_summary$NA.percentage>50),col_NAs ] <- NA
 
   res_summary$NA.percentage <- round(res_summary$NA.percentage, 2)
   res_summary$Probability.reference <- round(res_summary$Probability.reference, 2)
-  res_summary$absent_score <- round(res_summary$absent_score, 2)
-  res_summary$present_score <- round(res_summary$present_score, 2)
   res_summary$purityPercent <- round(res_summary$purityPercent, 2)
 
 
