@@ -234,37 +234,21 @@ to maintain the integrity of the analysis.
 Reference**
 
 The final step involves evaluating each sample’s genetic ‘*purity*’ in
-relation to its best-matched reference variety. Three calculations are
-presented:
+relation to its best-matched reference variety.
 
-- **Absent score.** The proportion of alleles over the available marker
-  set that is absent from the matched reference profile (a discretised
-  representation of that variety reference), which is also absent from
-  the test sample.
-- **Present score.** The proportion of alleles over the available marker
-  set that is present from the matched reference profile (a discretised
-  representation of that variety reference), which is also present in
-  the test sample.
-- **Purity Percentage.** Absent score as a percentage. Under the
-  assumption that we have matched the variety, purity is reduced by
-  introducing additional alleles from one or more varieties, thus
-  decreasing the absence score. In this case, the presence score would
-  not be affected unless impurity levels were very high, i.e. many
-  varieties were mixed. Therefore, the presence score is not used in
-  purity calculation.
-
-Note: Absent and present scores could be used together as a form of a
-distance metric.
+- **Purity Percentage.** The percentage of alleles over the available
+  marker set that is absent from the matched reference profile (a
+  discretised representation of that variety reference), which is also
+  absent from the test sample.
 
 ### **Visualisation Tab**
 
 Utilising PCA, this tab presents the spatial genetic variation of a
 sample alongside its closest references. PCA plots are interactive,
 allowing rotation, zoom, and exploration of data points. Users can
-export these visualisations as static images or interactive HTML files.
-Additionally, tables detailing the matching probability of the top
-matching references for each sample and for all the samples can be saved
-in CSV format.
+export these visualisations as static images. Additionally, tables
+detailing the matching probability of the top matching references for
+each sample and for all the samples can be saved in CSV format.
 
 <p align="center">
 <img src='www/Visualisation_1.png' width="800"/>

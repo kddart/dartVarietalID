@@ -150,13 +150,9 @@ The overall matching probability is then derived by averaging the probabilities 
 
 **4 Purity Assessment of Samples Relative to Their Best Match Reference**
 
-The final step involves evaluating each sample's genetic '*purity*' in relation to its best-matched reference variety. Three calculations are presented:
+The final step involves evaluating each sample's genetic '*purity*' in relation to its best-matched reference variety. 
 
-* **Absent score.** The proportion of alleles over the available marker set that is absent from the matched reference profile (a discretised representation of that variety reference), which is also absent from the test sample.
-* **Present score.** The proportion of alleles over the available marker set that is present from the matched reference profile (a discretised representation of that variety reference), which is also present in the test sample.
-* **Purity Percentage.** Absent score as a percentage. Under the assumption that we have matched the variety, purity is reduced by introducing additional alleles from one or more varieties, thus decreasing the absence score. In this case, the presence score would not be affected unless impurity levels were very high, i.e. many varieties were mixed. Therefore, the presence score is not used in purity calculation.
-
-Note: Absent and present scores could be used together as a form of a distance metric.
+* **Purity Percentage.** The percentage of alleles over the available marker set that is absent from the matched reference profile (a discretised representation of that variety reference), which is also absent from the test sample.
 
 ### **Visualisation Tab**
 
