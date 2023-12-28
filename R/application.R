@@ -39,7 +39,7 @@ dartVarietalIDShiny <- function() {
   input_class <- c("ui small icon input",
                    "ui fluid icon input")
 
-  addResourcePath('www','www')
+  #addResourcePath('www','www')
 
   #######################################################################
   ############### UI ####################################################
