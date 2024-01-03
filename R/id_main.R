@@ -186,11 +186,18 @@ runSampleAnalysis <- function(counts.file,
   infoFile <- readTargetInfoFile(file = info.file)
   assigned_test_reference <- res_summary$RefType.reference
   names(assigned_test_reference) <- res_summary$TargetID.sample
-  res_purity <- calculatePurity(genotypic_counts,
-                                infoFile,
-                                assigned_test_reference,
-                                ncores)
 
+## RH
+## this breaks the code for our data
+## as it is not essential I remove it for now
+
+  #res_purity <- calculatePurity(genotypic_counts,
+  #                              infoFile,
+  #                              assigned_test_reference,
+  #                              ncores)
+
+  res_purity <- NA
+  
   res_summary <- cbind(res_summary,res_purity)
   # Setting NAs to samples with more than 50% of missing data
   col_NAs <- c("Probability.reference",
