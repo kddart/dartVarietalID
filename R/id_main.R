@@ -92,6 +92,10 @@ runSampleAnalysis <- function(counts.file,
     message(length(pop_drop_ref)," references with more than ",na.perc.threshold,
     " percentage of missing data were removed: ", paste(names(pop_drop_ref)," "))
   }
+
+  test_pop_ref$other$ind.metrics$RefType <- trimws(test_pop_ref$other$ind.metrics$RefType, which = "both")
+  test_pop_ref$other$ind.metrics$RefType <- gsub(" ","_",test_pop_ref$other$ind.metrics$RefType)
+
   pop(test_pop_ref) <- test_pop_ref$other$ind.metrics$RefType
 
   test_pop_sam <- dartR::gl.keep.pop(ref_sam_pops,
@@ -145,6 +149,9 @@ runSampleAnalysis <- function(counts.file,
     t1 <- dartR::gl.dist.pop(test_pop_ref_2, method = "nei", plot.out = TRUE)
     t1 <- as.matrix(t1)
 
+    df_colors_2 <- merge(data.frame(ind=colnames(t1)),
+                                    df_colors,by="ind" )
+
     palette.divergent <- dartR.base::gl.colors("div")
 
     pdf(
@@ -155,14 +162,14 @@ runSampleAnalysis <- function(counts.file,
     heatmap.3(
       t1,
       margins = c(10, 10),
-      ColSideColors = df_colors$color,
-      RowSideColors = df_colors$color,
+      ColSideColors = df_colors_2$color,
+      RowSideColors = df_colors_2$color,
       sepcolor = "black",
       dendrogram = "column",
       trace = "none",
       col = viridis::turbo(255),
-      colRow = df_colors$color,
-      colCol = df_colors$color,
+      colRow = df_colors_2$color,
+      colCol = df_colors_2$color,
       density.info = "none",
       reorderfun = function(d, w){reorder(d, w, agglo.FUN = mean, na.rm = TRUE)},
       main = "Genetic distance (Nei's distance) between references",
