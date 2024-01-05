@@ -56,7 +56,7 @@ read.dart.counts <- function(counts.file,
     stop("Fatal Error: There is no 'RefType' column in the info file\n")
   }
 
-  # ind_metrics$SampleType <- as.character(ind_metrics$SampleType)
+   ind_metrics$SampleType <- as.character(ind_metrics$SampleType)
   # ind_metrics[!is.na(ind_metrics$SampleType),"SampleType"] <- "sample"
   ind_metrics[which(!is.na(ind_metrics$SampleType)),"SampleType"] <- "sample"
   ind_metrics[which(is.na(ind_metrics$SampleType)),"SampleType"] <- "reference"
