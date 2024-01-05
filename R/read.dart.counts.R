@@ -23,18 +23,8 @@ read.dart.counts <- function(counts.file,
   }
 
   # Read in info file
-<<<<<<< HEAD
-  ind_metrics <-
-    read.csv(
-      info.file,
-      na.strings = "",
-      check.names = FALSE,
-      stringsAsFactors = FALSE
-    )
-
-=======
   if (inherits(info.file, "data.frame")) {
-	  ind_metrics <- info.file  
+	  ind_metrics <- info.file
   } else {
 	  ind_metrics <-
 		read.csv(
@@ -43,9 +33,8 @@ read.dart.counts <- function(counts.file,
 		  check.names = FALSE,
 		  stringsAsFactors = TRUE
 		)
-  }	
-  
->>>>>>> e65c59229423248f3d8467a05bcb737e17e30e29
+  }
+
   # check whether the TargetID column is present
   id.col <- match("TargetID", names(ind_metrics))
   if (is.na(id.col)) {
