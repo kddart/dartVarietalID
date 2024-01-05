@@ -7,6 +7,10 @@
 #' @param ncores Number of cores to run analysis
 #' [default parallel::detectCores() - 1].
 #' @param pop.size Number individuals to simulate [default 10].
+#' @param dis.mat Whether to create and save to wd a genetic distance plot of
+#'  the references [default TRUE].
+#' @param na.perc.threshold Threshold for missing data to remove references
+#' and samples [default 50].
 #' @details
 #' Main script
 #' @return A list with the following elements:
@@ -50,19 +54,21 @@
 #' @rawNamespace import(shinyWidgets, except = c(alert))
 #' @rawNamespace import(methods, except = c(removeClass,show))
 
-
 #' @import dartR
 #' @import stats
 #' @import parallel
 #' @import utils
 #' @import shinyjs
 #' @import tableHTML
+#' @import dendextend
 #' @export
 
 runSampleAnalysis <- function(counts.file,
                               info.file,
                               ncores = parallel::detectCores() - 1,
-                              pop.size = 10) {
+                              pop.size = 10,
+                              dis.mat = TRUE,
+                              na.perc.threshold = 50) {
 
   # read in counts file and info file
   ref_sam <- read.dart.counts(counts.file = counts.file,
@@ -75,12 +81,97 @@ runSampleAnalysis <- function(counts.file,
   test_pop_ref <- dartR::gl.keep.pop(ref_sam_pops,
                                      pop.list = "reference",
                                      verbose = 0)
+  pop(test_pop_ref) <- test_pop_ref$other$ind.metrics$TargetID
+  # removing references with more than  the threshold of missing data
+  test_pop_ref_NA <- seppop(test_pop_ref)
+  na_check_ref <- unlist(lapply(test_pop_ref_NA, na_check))
+  pop_drop_ref <- which(na_check_ref > na.perc.threshold)
+  if(length(pop_drop_ref)>0){
+    test_pop_ref <- dartR::gl.drop.pop(test_pop_ref,
+                                pop.list = popNames(test_pop_ref)[pop_drop_ref])
+    message(length(pop_drop_ref)," references with more than ",na.perc.threshold,
+    " percentage of missing data were removed: ", paste(names(pop_drop_ref)," "))
+  }
+  pop(test_pop_ref) <- test_pop_ref$other$ind.metrics$RefType
+
   test_pop_sam <- dartR::gl.keep.pop(ref_sam_pops,
                                      pop.list = "sample",
                                      verbose = 0)
-
-  pop(test_pop_ref) <- test_pop_ref$other$ind.metrics$RefType
   pop(test_pop_sam) <- test_pop_sam$other$ind.metrics$TargetID
+  # removing samples with more than the threshold of missing data
+  test_pop_sam_NA <- seppop(test_pop_sam)
+  na_check_sam <- unlist(lapply(test_pop_sam_NA, na_check))
+  pop_drop_sam <- which(na_check_sam > na.perc.threshold)
+  if(length(pop_drop_sam)>0){
+    test_pop_sam <- dartR::gl.drop.pop(test_pop_sam,
+                                pop.list = popNames(test_pop_sam)[pop_drop_sam])
+    message(length(pop_drop_sam)," samples with more than ",na.perc.threshold,
+            " percentage of missing data were removed: ", paste(names(pop_drop_sam)," "))
+  }
+
+  if (dis.mat) {
+    test_pop_ref_2 <- test_pop_ref
+    pop(test_pop_ref_2) <-
+      paste0(
+        test_pop_ref_2$other$ind.metrics$TargetID,
+        "_",
+        test_pop_ref_2$other$ind.metrics$RefType
+      )
+
+    test_pop_ref_2$other$ind.metrics$RefType <- as.factor(test_pop_ref_2$other$ind.metrics$RefType)
+    colors_pops <-
+      polychrome(length(levels(
+        test_pop_ref_2$other$ind.metrics$RefType
+      )))
+    names(colors_pops) <-
+      as.character(levels(test_pop_ref_2$other$ind.metrics$RefType))
+
+    df_colors_temp_1 <-
+      as.data.frame(cbind(
+        as.character(pop(test_pop_ref_2)),
+        as.character(test_pop_ref_2$other$ind.metrics$RefType)
+      ))
+    df_colors_temp_1 <- unique(df_colors_temp_1)
+    df_colors_temp_1$order <- 1:nPop(test_pop_ref_2)
+    colnames(df_colors_temp_1) <- c("ind", "pop", "order")
+    # colnames(df_colors_temp_1) <- c("ind", "pop")
+
+    df_colors_temp_2 <- as.data.frame(cbind(names(colors_pops), colors_pops))
+    colnames(df_colors_temp_2) <- c("pop", "color")
+    df_colors <- merge(df_colors_temp_1, df_colors_temp_2, by = "pop")
+    df_colors$order <- as.numeric(df_colors$order)
+    df_colors <- df_colors[order(df_colors$order),]
+
+    t1 <- dartR::gl.dist.pop(test_pop_ref_2, method = "nei", plot.out = TRUE)
+    t1 <- as.matrix(t1)
+
+    palette.divergent <- dartR.base::gl.colors("div")
+
+    pdf(
+      paste0(strsplit(basename(counts.file), "_")[[1]][1], "_ref_distance.pdf"),
+      width = nPop(test_pop_ref_2) / 5,
+      height = nPop(test_pop_ref_2) / 5
+    )
+    heatmap.3(
+      t1,
+      margins = c(10, 10),
+      ColSideColors = df_colors$color,
+      RowSideColors = df_colors$color,
+      sepcolor = "black",
+      dendrogram = "column",
+      trace = "none",
+      col = viridis::turbo(255),
+      colRow = df_colors$color,
+      colCol = df_colors$color,
+      density.info = "none",
+      reorderfun = function(d, w){reorder(d, w, agglo.FUN = mean, na.rm = TRUE)},
+      main = "Genetic distance (Nei's distance) between references",
+       na.rm = TRUE,
+      na.color = "grey"
+    )
+    # Close device
+    dev.off()
+  }
 
   # Separating populations
   sam_pops_sep <- seppop(test_pop_sam)
@@ -182,32 +273,24 @@ runSampleAnalysis <- function(counts.file,
   names(res_tmp) <- TargetID.sample
 
   # Calculating purity
-  genotypic_counts <- ds14.genotypic(ds14.read(counts.file))
-  infoFile <- readTargetInfoFile(file = info.file)
-  assigned_test_reference <- res_summary$RefType.reference
-  names(assigned_test_reference) <- res_summary$TargetID.sample
-
-## RH
-## this breaks the code for our data
-## as it is not essential I remove it for now
-
-  #res_purity <- calculatePurity(genotypic_counts,
-  #                              infoFile,
-  #                              assigned_test_reference,
-  #                              ncores)
-
-  res_purity <- NA
-  
-  res_summary <- cbind(res_summary,res_purity)
-  # Setting NAs to samples with more than 50% of missing data
-  col_NAs <- c("Probability.reference",
-               "purityPercent")
+  # genotypic_counts <- ds14.genotypic(ds14.read(counts.file))
+  # infoFile <- readTargetInfoFile(file = info.file)
+  # assigned_test_reference <- res_summary$RefType.reference
+  # names(assigned_test_reference) <- res_summary$TargetID.sample
+  # res_purity <- calculatePurity(genotypic_counts,
+  #                               infoFile,
+  #                               assigned_test_reference,
+  #                               ncores)
+  # res_summary <- cbind(res_summary,res_purity)
+  # # Setting NAs to samples with more than 50% of missing data
+  # col_NAs <- c("Probability.reference",
+  #              "purityPercent")
+  col_NAs <- c("Probability.reference")
   res_summary[which(res_summary$NA.percentage>50),col_NAs ] <- NA
 
   res_summary$NA.percentage <- round(res_summary$NA.percentage, 2)
   res_summary$Probability.reference <- round(res_summary$Probability.reference, 2)
-  res_summary$purityPercent <- round(res_summary$purityPercent, 2)
-
+  # res_summary$purityPercent <- round(res_summary$purityPercent, 2)
 
   return(list(
     res_summary = res_summary,
