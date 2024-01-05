@@ -28,7 +28,7 @@ read.dart.counts <- function(counts.file,
       info.file,
       na.strings = "",
       check.names = FALSE,
-      stringsAsFactors = TRUE
+      stringsAsFactors = FALSE
     )
 
   # check whether the TargetID column is present
@@ -52,9 +52,10 @@ read.dart.counts <- function(counts.file,
     stop("Fatal Error: There is no 'RefType' column in the info file\n")
   }
 
-  ind_metrics$SampleType <- as.character(ind_metrics$SampleType)
-  ind_metrics[!is.na(ind_metrics$SampleType),"SampleType"] <- "sample"
-  ind_metrics[is.na(ind_metrics$SampleType),"SampleType"] <- "reference"
+  # ind_metrics$SampleType <- as.character(ind_metrics$SampleType)
+  # ind_metrics[!is.na(ind_metrics$SampleType),"SampleType"] <- "sample"
+  ind_metrics[which(!is.na(ind_metrics$SampleType)),"SampleType"] <- "sample"
+  ind_metrics[which(is.na(ind_metrics$SampleType)),"SampleType"] <- "reference"
 
   # Read in headings counts file
   tdummy <-
