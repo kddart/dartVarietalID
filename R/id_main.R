@@ -215,9 +215,21 @@ runSampleAnalysis <- function(counts.file,
     }), na.rm = TRUE)
     # if individuals are different
     if (test_var > 0) {
+      # if unix
+      if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
       pcoa <- adegenet::glPca(pop_test,
                               nf = 3,
+                              parallel = FALSE,
                               loadings = FALSE)
+      }
+
+      ## if windows
+      if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+        pcoa <- adegenet::glPca(pop_test,
+                                nf = 3,
+                                parallel = TRUE,
+                                loadings = FALSE)
+      }
 
       pcoa_scores <- pcoa$scores
       means <- colMeans(pcoa_scores)
