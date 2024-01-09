@@ -145,6 +145,49 @@ gl2alleles <- function (gl) {
   return(xx)
 }
 
+# selecting the representative individual from the sample using PCA
+rep_ind <- function(x){
+  # removing missing data for PCA
+  pop_test <- dartR::gl.filter.callrate(x,
+                                        threshold = 1,
+                                        verbose = 0)
+  # test whether all individuals are the same (when all loci are monomorphic)
+  pop_test_mat <- as.matrix(pop_test)
+  test_var <- sum(apply(pop_test_mat, 2, function(x) {
+    var(x) != 0
+  }), na.rm = TRUE)
+  # if individuals are different
+  if (test_var > 0) {
+    # if unix
+    if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+      pcoa <- adegenet::glPca(pop_test,
+                              nf = 3,
+                              parallel = FALSE,
+                              loadings = FALSE)
+    }
+
+    ## if windows
+    if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+      pcoa <- adegenet::glPca(pop_test,
+                              nf = 3,
+                              parallel = TRUE,
+                              loadings = FALSE)
+    }
+
+    pcoa_scores <- pcoa$scores
+    means <- colMeans(pcoa_scores)
+    covariance <- stats::cov(pcoa_scores)
+    D <- stats::mahalanobis(x = pcoa_scores,
+                            center = means,
+                            cov = covariance,
+                            toll = 1e-20)
+    return(x[which.min(D),])
+    # if individuals are the same, get the first individual
+  } else{
+    return(x[1,])
+  }
+}
+
 heatmap.3 <-
   function (x,
             Rowv = TRUE,
