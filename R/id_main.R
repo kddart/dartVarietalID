@@ -65,9 +65,9 @@
 
 runSampleAnalysis <- function(counts.file,
                               info.file,
-                              ncores = parallel::detectCores() - 1,
+                              ncores = parallel::detectCores(),
                               pop.size = 10,
-                              dis.mat = TRUE,
+                              dis.mat = FALSE,
                               na.perc.threshold = 50) {
 
   # read in counts file and info file
@@ -138,7 +138,6 @@ runSampleAnalysis <- function(counts.file,
     df_colors_temp_1 <- unique(df_colors_temp_1)
     df_colors_temp_1$order <- 1:nPop(test_pop_ref_2)
     colnames(df_colors_temp_1) <- c("ind", "pop", "order")
-    # colnames(df_colors_temp_1) <- c("ind", "pop")
 
     df_colors_temp_2 <- as.data.frame(cbind(names(colors_pops), colors_pops))
     colnames(df_colors_temp_2) <- c("pop", "color")
@@ -146,7 +145,9 @@ runSampleAnalysis <- function(counts.file,
     df_colors$order <- as.numeric(df_colors$order)
     df_colors <- df_colors[order(df_colors$order),]
 
-    t1 <- dartR::gl.dist.pop(test_pop_ref_2, method = "nei", plot.out = TRUE)
+    t1 <- dartR::gl.dist.pop(test_pop_ref_2, method = "nei",
+                             plot.out = FALSE,
+                             verbose = 0)
     t1 <- as.matrix(t1)
 
     df_colors_2 <- merge(data.frame(ind=colnames(t1)),
@@ -201,48 +202,16 @@ runSampleAnalysis <- function(counts.file,
   }
 
   # selecting the representative individual from the sample using PCA
-  top_ind <- as.list(1:length(sam_pops_sep))
-  for (y in 1:length(sam_pops_sep)) {
-    pop_test_hold <- sam_pops_sep[[y]]
-    # removing missing data for PCA
-    pop_test <- dartR::gl.filter.callrate(pop_test_hold,
-                                          threshold = 1,
-                                          verbose = 0)
-    # test whether all individuals are the same (when all loci are monomorphic)
-    pop_test_mat <- as.matrix(pop_test)
-    test_var <- sum(apply(pop_test_mat, 2, function(x) {
-      var(x) != 0
-    }), na.rm = TRUE)
-    # if individuals are different
-    if (test_var > 0) {
-      # if unix
-      if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
-      pcoa <- adegenet::glPca(pop_test,
-                              nf = 3,
-                              parallel = FALSE,
-                              loadings = FALSE)
-      }
+  # if unix
+  if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+    top_ind <- parallel::mclapply(X = sam_pops_sep,
+                                FUN = rep_ind,
+                                mc.cores = ncores)
+  }
 
-      ## if windows
-      if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
-        pcoa <- adegenet::glPca(pop_test,
-                                nf = 3,
-                                parallel = TRUE,
-                                loadings = FALSE)
-      }
-
-      pcoa_scores <- pcoa$scores
-      means <- colMeans(pcoa_scores)
-      covariance <- stats::cov(pcoa_scores)
-      D <- stats::mahalanobis(x = pcoa_scores,
-                              center = means,
-                              cov = covariance,
-                              toll = 1e-20)
-      top_ind[[y]] <- pop_test_hold[which.min(D),]
-      # if individuals are the same, get the first individual
-    } else{
-      top_ind[[y]] <- pop_test_hold[1,]
-    }
+  ## if windows
+  if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+    top_ind <- lapply(sam_pops_sep,rep_ind)
   }
 
   # if unix

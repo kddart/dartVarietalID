@@ -32,7 +32,7 @@ dartVarietalIDShiny <- function() {
   }
 
   # maximum size of file to upload
-  options(shiny.maxRequestSize = 30 * 1024 ^ 2)
+  options(shiny.maxRequestSize = 100 * 1024 ^ 2)
 
   box_color <- "green"
   box_height <- '100%'
