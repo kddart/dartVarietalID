@@ -65,7 +65,7 @@
 
 runSampleAnalysis <- function(counts.file,
                               info.file,
-                              ncores = parallel::detectCores() - 1,
+                              ncores = parallel::detectCores(),
                               pop.size = 10,
                               dis.mat = FALSE,
                               na.perc.threshold = 50) {
