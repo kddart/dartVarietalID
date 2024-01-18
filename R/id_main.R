@@ -68,6 +68,7 @@ runSampleAnalysis <- function(counts.file,
                               ncores = parallel::detectCores(),
                               pop.size = 10,
                               dis.mat = FALSE,
+							  plot.ref = FALSE,
                               na.perc.threshold = 50) {
 
   # read in counts file and info file
@@ -113,7 +114,7 @@ runSampleAnalysis <- function(counts.file,
             " percentage of missing data were removed: ", paste(names(pop_drop_sam)," "))
   }
 
-  if (dis.mat) {
+  if (dis.mat || plot.ref) {
     test_pop_ref_2 <- test_pop_ref
     pop(test_pop_ref_2) <-
       paste0(
@@ -123,62 +124,66 @@ runSampleAnalysis <- function(counts.file,
       )
 
     test_pop_ref_2$other$ind.metrics$RefType <- as.factor(test_pop_ref_2$other$ind.metrics$RefType)
-    colors_pops <-
-      polychrome(length(levels(
-        test_pop_ref_2$other$ind.metrics$RefType
-      )))
-    names(colors_pops) <-
-      as.character(levels(test_pop_ref_2$other$ind.metrics$RefType))
-
-    df_colors_temp_1 <-
-      as.data.frame(cbind(
-        as.character(pop(test_pop_ref_2)),
-        as.character(test_pop_ref_2$other$ind.metrics$RefType)
-      ))
-    df_colors_temp_1 <- unique(df_colors_temp_1)
-    df_colors_temp_1$order <- 1:nPop(test_pop_ref_2)
-    colnames(df_colors_temp_1) <- c("ind", "pop", "order")
-
-    df_colors_temp_2 <- as.data.frame(cbind(names(colors_pops), colors_pops))
-    colnames(df_colors_temp_2) <- c("pop", "color")
-    df_colors <- merge(df_colors_temp_1, df_colors_temp_2, by = "pop")
-    df_colors$order <- as.numeric(df_colors$order)
-    df_colors <- df_colors[order(df_colors$order),]
-
     t1 <- dartR::gl.dist.pop(test_pop_ref_2, method = "nei",
                              plot.out = FALSE,
                              verbose = 0)
     t1 <- as.matrix(t1)
 
-    df_colors_2 <- merge(data.frame(ind=colnames(t1)),
-                                    df_colors,by="ind" )
+	if (plot.ref) {
 
-    palette.divergent <- dartR.base::gl.colors("div")
+		colors_pops <-
+		  polychrome(length(levels(
+			test_pop_ref_2$other$ind.metrics$RefType
+		  )))
+		names(colors_pops) <-
+		  as.character(levels(test_pop_ref_2$other$ind.metrics$RefType))
 
-    pdf(
-      paste0(strsplit(basename(counts.file), "_")[[1]][1], "_ref_distance.pdf"),
-      width = nPop(test_pop_ref_2) / 5,
-      height = nPop(test_pop_ref_2) / 5
-    )
-    heatmap.3(
-      t1,
-      margins = c(10, 10),
-      ColSideColors = df_colors_2$color,
-      RowSideColors = df_colors_2$color,
-      sepcolor = "black",
-      dendrogram = "column",
-      trace = "none",
-      col = viridis::turbo(255),
-      colRow = df_colors_2$color,
-      colCol = df_colors_2$color,
-      density.info = "none",
-      reorderfun = function(d, w){reorder(d, w, agglo.FUN = mean, na.rm = TRUE)},
-      main = "Genetic distance (Nei's distance) between references",
-       na.rm = TRUE,
-      na.color = "grey"
-    )
-    # Close device
-    dev.off()
+		df_colors_temp_1 <-
+		  as.data.frame(cbind(
+			as.character(pop(test_pop_ref_2)),
+			as.character(test_pop_ref_2$other$ind.metrics$RefType)
+		  ))
+		df_colors_temp_1 <- unique(df_colors_temp_1)
+		df_colors_temp_1$order <- 1:nPop(test_pop_ref_2)
+		colnames(df_colors_temp_1) <- c("ind", "pop", "order")
+
+		df_colors_temp_2 <- as.data.frame(cbind(names(colors_pops), colors_pops))
+		colnames(df_colors_temp_2) <- c("pop", "color")
+		df_colors <- merge(df_colors_temp_1, df_colors_temp_2, by = "pop")
+		df_colors$order <- as.numeric(df_colors$order)
+		df_colors <- df_colors[order(df_colors$order),]
+
+
+		df_colors_2 <- merge(data.frame(ind=colnames(t1)),
+										df_colors,by="ind" )
+
+		palette.divergent <- dartR.base::gl.colors("div")
+
+		pdf(
+		  paste0(strsplit(basename(counts.file), "_")[[1]][1], "_ref_distance.pdf"),
+		  width = nPop(test_pop_ref_2) / 5,
+		  height = nPop(test_pop_ref_2) / 5
+		)
+		heatmap.3(
+		  t1,
+		  margins = c(10, 10),
+		  ColSideColors = df_colors_2$color,
+		  RowSideColors = df_colors_2$color,
+		  sepcolor = "black",
+		  dendrogram = "column",
+		  trace = "none",
+		  col = viridis::turbo(255),
+		  colRow = df_colors_2$color,
+		  colCol = df_colors_2$color,
+		  density.info = "none",
+		  reorderfun = function(d, w){reorder(d, w, agglo.FUN = mean, na.rm = TRUE)},
+		  main = "Genetic distance (Nei's distance) between references",
+		   na.rm = TRUE,
+		  na.color = "grey"
+		)
+		# Close device
+		dev.off()
+	}
   }
 
   # Separating populations
@@ -284,7 +289,8 @@ runSampleAnalysis <- function(counts.file,
     res_summary = res_summary,
     res_full = res_tmp,
     gl.references = test_pop_ref,
-    gl.samples = test_pop_sam
+    gl.samples = test_pop_sam,
+	ref_distance = t1
   ))
 
 }
