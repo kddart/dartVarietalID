@@ -9,6 +9,11 @@
 #' @param pop.size Number individuals to simulate [default 10].
 #' @param dis.mat Whether to create and save to wd a genetic distance plot of
 #'  the references [default TRUE].
+#' @param plot.ref [default TRUE].
+#' @param gen_dif [default TRUE].
+#' @param purity [default TRUE].
+#' @param overlap [default TRUE].
+#' @param correlation [default TRUE].
 #' @param na.perc.threshold Threshold for missing data to remove references
 #' and samples [default 50].
 #' @details
@@ -61,14 +66,20 @@
 #' @import shinyjs
 #' @import tableHTML
 #' @import dendextend
+#' @import rgl
+#' @import SIBER
 #' @export
 
 runSampleAnalysis <- function(counts.file,
                               info.file,
-                              ncores = parallel::detectCores(),
+                              ncores = parallel::detectCores() -1,
                               pop.size = 10,
-                              dis.mat = FALSE,
-							  plot.ref = FALSE,
+                              dis.mat = TRUE,
+                              plot.ref = TRUE,
+                              gen_dif = TRUE,
+                              purity = TRUE,
+                              overlap = TRUE,
+                              correlation =TRUE,
                               na.perc.threshold = 50) {
 
   # read in counts file and info file
@@ -77,13 +88,14 @@ runSampleAnalysis <- function(counts.file,
   # converting to genotypes
   ref_sam_pops <- counts2geno(count.data = ref_sam,
                               pop.size = pop.size)
+
   # separating references from samples
-  pop(ref_sam_pops) <- ref_sam_pops$other$ind.metrics$SampleType
+  pop(ref_sam_pops) <- ref_sam_pops$other$ind.metrics$reference
   test_pop_ref <- dartR::gl.keep.pop(ref_sam_pops,
                                      pop.list = "reference",
                                      verbose = 0)
   pop(test_pop_ref) <- test_pop_ref$other$ind.metrics$TargetID
-  # removing references with more than  the threshold of missing data
+  # removing references with more than the threshold of missing data
   test_pop_ref_NA <- seppop(test_pop_ref)
   na_check_ref <- unlist(lapply(test_pop_ref_NA, na_check))
   pop_drop_ref <- which(na_check_ref > na.perc.threshold)
@@ -94,10 +106,11 @@ runSampleAnalysis <- function(counts.file,
     " percentage of missing data were removed: ", paste(names(pop_drop_ref)," "))
   }
 
-  test_pop_ref$other$ind.metrics$RefType <- trimws(test_pop_ref$other$ind.metrics$RefType, which = "both")
-  test_pop_ref$other$ind.metrics$RefType <- gsub(" ","_",test_pop_ref$other$ind.metrics$RefType)
+  # test_pop_ref$other$ind.metrics$variety <- trimws(test_pop_ref$other$ind.metrics$variety, which = "both")
+  # test_pop_ref$other$ind.metrics$variety <- gsub(" ","_",test_pop_ref$other$ind.metrics$variety)
 
-  pop(test_pop_ref) <- test_pop_ref$other$ind.metrics$RefType
+  # pop(test_pop_ref) <- test_pop_ref$other$ind.metrics$variety
+  pop(test_pop_ref) <- test_pop_ref$other$ind.metrics$variety
 
   test_pop_sam <- dartR::gl.keep.pop(ref_sam_pops,
                                      pop.list = "sample",
@@ -120,10 +133,10 @@ runSampleAnalysis <- function(counts.file,
       paste0(
         test_pop_ref_2$other$ind.metrics$TargetID,
         "_",
-        test_pop_ref_2$other$ind.metrics$RefType
+        test_pop_ref_2$other$ind.metrics$variety
       )
 
-    test_pop_ref_2$other$ind.metrics$RefType <- as.factor(test_pop_ref_2$other$ind.metrics$RefType)
+    test_pop_ref_2$other$ind.metrics$variety <- as.factor(test_pop_ref_2$other$ind.metrics$variety)
     t1 <- dartR::gl.dist.pop(test_pop_ref_2, method = "nei",
                              plot.out = FALSE,
                              verbose = 0)
@@ -133,15 +146,15 @@ runSampleAnalysis <- function(counts.file,
 
 		colors_pops <-
 		  polychrome(length(levels(
-			test_pop_ref_2$other$ind.metrics$RefType
+			test_pop_ref_2$other$ind.metrics$variety
 		  )))
 		names(colors_pops) <-
-		  as.character(levels(test_pop_ref_2$other$ind.metrics$RefType))
+		  as.character(levels(test_pop_ref_2$other$ind.metrics$variety))
 
 		df_colors_temp_1 <-
 		  as.data.frame(cbind(
 			as.character(pop(test_pop_ref_2)),
-			as.character(test_pop_ref_2$other$ind.metrics$RefType)
+			as.character(test_pop_ref_2$other$ind.metrics$variety)
 		  ))
 		df_colors_temp_1 <- unique(df_colors_temp_1)
 		df_colors_temp_1$order <- 1:nPop(test_pop_ref_2)
@@ -152,7 +165,6 @@ runSampleAnalysis <- function(counts.file,
 		df_colors <- merge(df_colors_temp_1, df_colors_temp_2, by = "pop")
 		df_colors$order <- as.numeric(df_colors$order)
 		df_colors <- df_colors[order(df_colors$order),]
-
 
 		df_colors_2 <- merge(data.frame(ind=colnames(t1)),
 										df_colors,by="ind" )
@@ -238,49 +250,143 @@ runSampleAnalysis <- function(counts.file,
 
   }
 
+  if(gen_dif){
+
+    res_dif <- parallel::mclapply(X = sam_pops_sep,
+                                  FUN = dart.differentiation,
+                                  ref = ref_pops_sep,
+                                  mc.cores = ncores)
+    res_tmp2 <- lapply(1:length(res_dif),function(x){
+    tmp1 <- merge(res_tmp[[x]],res_dif[[x]],by="variety")
+    tmp1 <- tmp1[order(tmp1$Probability,decreasing = TRUE),]
+    })
+    res_tmp <- res_tmp2
+    }
+
   # summary results dataframe
   TargetID.sample <- unlist(lapply(top_ind,function(x){
     x$other$ind.metrics$TargetID
   }))
-  Genotype.sample <- unlist(lapply(top_ind,function(x){
-    x$other$ind.metrics$Genotype
+  sample.sample <- unlist(lapply(top_ind,function(x){
+    x$other$ind.metrics$sample
   }))
   res_tmp2 <- lapply(res_tmp,"[",1,)
   res_tmp3 <- data.table::rbindlist(res_tmp2)
 
   TargetID.reference <- res_tmp3$TargetID
-  Genotype.reference <- res_tmp3$Genotype
-  RefType.reference <- res_tmp3$RefType
+  sample.reference <- res_tmp3$sample
+  variety.reference <- res_tmp3$variety
   Probability.reference <- res_tmp3$Probability
   NA.percentage <- round((1 - res_tmp3$NumLoci / nLoc(ref_sam_pops)) * 100,2)
 
+  if(gen_dif){
   res_summary <- data.frame(TargetID.sample = TargetID.sample,
-                            Genotype.sample = Genotype.sample,
+                            sample.sample = sample.sample,
                             TargetID.reference = TargetID.reference,
-                            Genotype.reference = Genotype.reference,
-                            RefType.reference = RefType.reference,
+                            sample.reference = sample.reference,
+                            variety.reference = variety.reference,
                             NA.percentage = NA.percentage,
-                            Probability.reference = Probability.reference
+                            Probability.reference = Probability.reference,
+                            Fst = res_tmp3$Fst,
+                            Fstp = res_tmp3$Fstp,
+                            Dest = res_tmp3$Dest,
+                            Gst_H = res_tmp3$Gst_H
   )
+  }else{
+    res_summary <- data.frame(TargetID.sample = TargetID.sample,
+                              sample.sample = sample.sample,
+                              TargetID.reference = TargetID.reference,
+                              sample.reference = sample.reference,
+                              variety.reference = variety.reference,
+                              NA.percentage = NA.percentage,
+                              Probability.reference = Probability.reference
+    )
+
+  }
 
   names(res_tmp) <- TargetID.sample
 
+  if(purity){
   # Calculating purity
-  # genotypic_counts <- ds14.genotypic(ds14.read(counts.file))
-  # infoFile <- readTargetInfoFile(file = info.file)
-  # assigned_test_reference <- res_summary$RefType.reference
-  # names(assigned_test_reference) <- res_summary$TargetID.sample
-  # res_purity <- calculatePurity(genotypic_counts,
-  #                               infoFile,
-  #                               assigned_test_reference,
-  #                               ncores)
-  # res_summary <- cbind(res_summary,res_purity)
-  # # Setting NAs to samples with more than 50% of missing data
-  # col_NAs <- c("Probability.reference",
-  #              "purityPercent")
-  col_NAs <- c("Probability.reference")
-  res_summary[which(res_summary$NA.percentage>50),col_NAs ] <- NA
+  genotypic_counts <- ds14.genotypic(ds14.read(counts.file))
+  infoFile <- readTargetInfoFile(file = info.file)
+  assigned_test_reference <- res_summary$variety.reference
+  names(assigned_test_reference) <- res_summary$TargetID.sample
+  res_purity <- calculatePurity(genotypic_counts,
+                                infoFile,
+                                assigned_test_reference,
+                                ncores)
+  res_summary <- cbind(res_summary,res_purity)
+  # Setting NAs to samples with more than 50% of missing data
+  col_NAs <- c("Probability.reference",
+               "purityPercent")
 
+  }else{
+
+    col_NAs <- c("Probability.reference")
+  }
+
+  if(overlap){
+
+    # # if unix
+    # if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+    #
+    #   res <- parallel::mclapply(X = 1:length(TargetID.sample),
+    #                             FUN =
+    #                             function(x){
+    #                               overlap_proportion(
+    #                               test.sample = unname(TargetID.sample)[[x]],
+    #                               full.report = res_tmp,
+    #                               ref = test_pop_ref,
+    #                               sam = test_pop_sam,
+    #                               n.varieties=10,
+    #                               plot = FALSE)
+    #                             }
+    #                   ,
+    #                   mc.cores = ncores)
+    #
+    # }
+    #
+    # ## if windows
+    # if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+
+      res <- lapply(1:length(TargetID.sample),function(x){
+
+        tmp <-  overlap_proportion(test.sample= names(TargetID.sample)[x],
+                                   full.report = res_tmp,
+                                   ref = test_pop_ref,
+                                   sam = test_pop_sam,
+                                   n.varieties=10,
+                                   plot = FALSE)
+
+        return(tmp)
+
+      })
+
+    # }
+
+    res2 <- as.data.frame(Reduce(rbind,res))
+    colnames(res2) <- c("id","overlap")
+    res_summary <- cbind(res_summary,res2)
+    res_summary$overlap <- as.numeric(res_summary$overlap)
+  }
+
+  if(correlation){
+
+    counts <- ref_sam$counts
+    cor_df <- res_summary[,c("TargetID.sample","TargetID.reference")]
+    r1 <-apply(cor_df,1,function(x){
+      summary(lm(counts[,x[1]]~
+                   counts[,x[2]]))$r.squared
+    })
+
+    res_summary$corr <- r1
+
+
+  }
+
+  # Setting NAs to samples with more than 50% of missing data
+  res_summary[which(res_summary$NA.percentage>50),col_NAs ] <- NA
   res_summary$NA.percentage <- round(res_summary$NA.percentage, 2)
   res_summary$Probability.reference <- round(res_summary$Probability.reference, 2)
   # res_summary$purityPercent <- round(res_summary$purityPercent, 2)

@@ -40,26 +40,26 @@ read.dart.counts <- function(counts.file,
   if (is.na(id.col)) {
     stop("Fatal Error: There is no 'TargetID' column in the info file\n")
   }
-  # check whether the SampleType column is present
-  type.col <- match("SampleType", names(ind_metrics))
+  # check whether the reference column is present
+  type.col <- match("reference", names(ind_metrics))
   if (is.na(type.col)) {
-    stop("Fatal Error: There is no 'SampleType' column in the info file\n")
+    stop("Fatal Error: There is no 'reference' column in the info file\n")
   }
-  # check whether the Genotype column is present
-  gen.col <- match("Genotype", names(ind_metrics))
+  # check whether the sample column is present
+  gen.col <- match("sample", names(ind_metrics))
   if (is.na(gen.col)) {
-    stop("Fatal Error: There is no 'Genotype' column in the info file\n")
+    stop("Fatal Error: There is no 'sample' column in the info file\n")
   }
-  # check whether the SampleType column is present
-  ref.col <- match("RefType", names(ind_metrics))
+  # check whether the variety column is present
+  ref.col <- match("variety", names(ind_metrics))
   if (is.na(ref.col)) {
-    stop("Fatal Error: There is no 'RefType' column in the info file\n")
+    stop("Fatal Error: There is no 'variety' column in the info file\n")
   }
 
-   ind_metrics$SampleType <- as.character(ind_metrics$SampleType)
-  # ind_metrics[!is.na(ind_metrics$SampleType),"SampleType"] <- "sample"
-  ind_metrics[which(!is.na(ind_metrics$SampleType)),"SampleType"] <- "sample"
-  ind_metrics[which(is.na(ind_metrics$SampleType)),"SampleType"] <- "reference"
+  ind_metrics$reference <- as.character(ind_metrics$reference)
+  # ind_metrics[!is.na(ind_metrics$reference),"reference"] <- "sample"
+  ind_metrics[which(ind_metrics$reference=="FALSE"),"reference"] <- "sample"
+  ind_metrics[which(ind_metrics$reference=="TRUE"),"reference"] <- "reference"
 
   # Read in headings counts file
   tdummy <-
@@ -102,7 +102,7 @@ read.dart.counts <- function(counts.file,
     by = "TargetID",
     relationship = "many-to-many"
   )
-  merge_names <- merge_names[stats::complete.cases(merge_names$SampleType), ]
+  merge_names <- merge_names[stats::complete.cases(merge_names$reference), ]
 
   # get loc metrics
   lastmetric <- getLastMarkerMetaDataField(counts.file)
@@ -130,7 +130,7 @@ read.dart.counts <- function(counts.file,
                            merge_names,
                            by = "TargetID",
                            relationship = "many-to-many")
-  merge_names <- merge_names[stats::complete.cases(merge_names$SampleType), ]
+  merge_names <- merge_names[stats::complete.cases(merge_names$reference), ]
 
   if(sum(merge_names$TargetID != colnames(datas))){
     stop(cat(
@@ -139,7 +139,7 @@ read.dart.counts <- function(counts.file,
   }
 
   # Provide a summary of the data
-  n_ref_sam <- table(merge_names$SampleType)
+  n_ref_sam <- table(merge_names$reference)
   cat("\nSummary of the dataset\n")
   cat("  No. of loci:", nrow(datas) / 2, "\n")
   cat("  No. of references:",  n_ref_sam["reference"], "\n")
