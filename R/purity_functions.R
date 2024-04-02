@@ -4,7 +4,7 @@ calculatePurity <- function(genotypic_counts,
                             ncores) {
   infoFile_references <- infoFile$getReferences()
   refsWithTargetID <- data.frame(TargetID = rownames(infoFile_references),
-                                 RefType = infoFile_references$RefType)
+                                 RefType = infoFile_references$variety)
 
   varietiesGenotypes <- extractVarietyGenotypes(genotypic_counts,
                                                 refsWithTargetID)
@@ -15,8 +15,8 @@ calculatePurity <- function(genotypic_counts,
   names(varietiesDiscretised) <-
     sapply(varietiesDiscretised, function(x)
       x$name)
-  unknown_genotypes <- extractVarietyGenotypesAsUnknown(genotypic_counts,
-                                                        names(assigned_test_reference))
+  unknown_genotypes <- extractVarietyGenotypesAsUnknown(genotypes=genotypic_counts,
+                                                        targets=names(assigned_test_reference))
   unknownSumList <- summaryStatsVarietyGenotypes(unknown_genotypes,
                                                  n.cores = ncores)
   do.call(rbind, lapply(1:length(assigned_test_reference), function(i) {
@@ -24,7 +24,9 @@ calculatePurity <- function(genotypic_counts,
                                           varietiesDiscretised[[assigned_test_reference[[i]]]])
 
     data.frame(
-      purityPercent = result$purityPercent
+      # purityPercent = result$purityPercent
+      purityPercent = (result$present_score+(1-result$absent_score))/2
+
     )
   }))
 }
@@ -41,7 +43,7 @@ extractVarietyGenotypesAsUnknown <- function(genotypes,
     obj <- {
 
     }
-    obj$name <- "UNKNOWN"
+    obj$name <- x
 
     obj$genotypes <- g
 

@@ -35,15 +35,49 @@ dart.assignment <- function(ref,
     return(freqs_gl)
   })
 
+  pop.het_fun <- function(df) {
+    df <- as.matrix(df)
+    # n_loc <- apply(df, 2, function(y) {
+    #   sum(!is.na(y))
+    # })
+    q_freq <- colMeans(df, na.rm = TRUE) / 2
+    p_freq <- 1 - q_freq
+    He.loc <- 2 * p_freq * q_freq
+    # n_ind <- apply(df, 2, function(y) {
+    #   sum(!is.na(y))
+    # })
+    # ### CP ### Unbiased He (i.e. corrected for sample size) hard
+    # # coded for diploid
+    # uHe.loc <-
+    #   (2 * as.numeric(n_ind) / (2 * as.numeric(n_ind) - 1)) * He.loc
+    # uHe <- mean(uHe.loc,na.rm=TRUE)
+    He <- mean(He.loc,na.rm =TRUE)
+    return(He)
+  }
+
+  # Ho <- lapply(1:length(ref),function(y){
+  #   colMeans(as.matrix(ref[[y]]) == 1, na.rm = TRUE)
+  # })
+  #
+  # HoA1 <- lapply(1:length(ref),function(y){
+  #   colMeans(as.matrix(ref[[y]]) == 0, na.rm = TRUE)
+  # })
+  #
+  # HoA2 <- lapply(1:length(ref),function(y){
+  #   colMeans(as.matrix(ref[[y]]) == 2, na.rm = TRUE)
+  # })
 
   ret <- data.frame(TargetID = pop_names,
-                    Genotype = NA,
-                    RefType = NA,
+                    sample = NA,
+                    variety = NA,
                     NumLoci = NA,
                     Probability = NA)
 
   # for each reference
   for (popx in 1:length(ref)) {
+
+    Ho_pop <- pop.het_fun(ref[[popx]])
+
     popfreq <- frequencies[[popx]]
 
     loc <-
@@ -53,12 +87,22 @@ dart.assignment <- function(ref,
     colnames(loc) <- c("a1", "a2")
 
 df_assign <- cbind(loc, popfreq)
+# Ho_pop <- mean(Ho[[popx]],na.rm = TRUE)
+# df_assign$HoA1 <- HoA1[[popx]]
+# df_assign$HoA2 <- HoA2[[popx]]
+# df_assign$Ho2 <- (1-df_assign$Ho)/df_assign$Ho
 # probability of being homozygote for the reference allele (p^2)
+# df_assign$hom1 <- (1-(df_assign$Frequency1 ^ 2)) / df_assign$Ho
 df_assign$hom1 <- df_assign$Frequency1 ^ 2
+
+# / df_assign$Ho
 # probability of being homozygote for the alternative allele (q^2)
+# df_assign$hom2 <- (1-(df_assign$Frequency2 ^ 2)) / df_assign$Ho
 df_assign$hom2 <- df_assign$Frequency2 ^ 2
+
+# / df_assign$Ho
 # probability of being heterozygote (2pq)
-df_assign$het <- 2 * df_assign$Frequency1 * df_assign$Frequency2
+df_assign$het <- (2 * df_assign$Frequency1 * df_assign$Frequency2) / 0.6
 # if sample is homozygote for the reference allele, set probability of
 # homozygote for the alternative allele and heterozygote to 0
 df_assign[which(df_assign$a1 == df_assign$a2 &
@@ -76,23 +120,27 @@ df_assign$prob <- df_assign$hom1 + df_assign$hom2 + df_assign$het
 df_assign[which(is.na(df_assign$a1)), "prob"] <- NA
 # set -1 to loci that have probability of 0, i.e. if the reference is fixed
 # for one allele and the sample is homozygote for the the other allele
-df_assign[which(df_assign$prob == 0), "prob"] <- -1
+ df_assign[which(df_assign$prob == 0), "prob"] <- -1
+ # df_assign[which(df_assign$Ho>0.05 & df_assign$Ho<0.3), "prob"] <- NA
+
 # get the number of loci that do not have missing data in both, the sample and
 # the reference
 n_loc_tmp <- rowSums(cbind(is.na(loc$a1),is.na(popfreq$Frequency1)))
 n_loc <- sum(n_loc_tmp==0)
 # assign probability
-ret[popx, "Genotype"] <- as.character(ref[[popx]]$other$ind.metrics$Genotype[1])
-ret[popx, "RefType"] <- as.character(ref[[popx]]$other$ind.metrics$RefType[1])
+ret[popx, "sample"] <- as.character(ref[[popx]]$other$ind.metrics$sample[1])
+ret[popx, "variety"] <- as.character(ref[[popx]]$other$ind.metrics$variety[1])
 ret[popx, "TargetID"] <- as.character(ref[[popx]]$other$ind.metrics$TargetID[1])
 ret[popx, "NumLoci"] <- n_loc
 # get the mean probability across all the loci
-ret[popx, "Probability"] <- sum(df_assign$prob, na.rm = TRUE)/ n_loc
+ret[popx, "Probability"] <- (sum(df_assign$prob, na.rm = TRUE)/ n_loc) / (1-Ho_pop)
+# ret[popx, "Probability2"] <- ret[popx, "Probability"]/(1-Ho_pop)
   }
 # order references by probability
 ret <- ret[order(-ret$Probability), ]
 ret$Probability <- round(ret$Probability * 100, 2)
-
+# head(ret)
   return(ret)
 
 }
+

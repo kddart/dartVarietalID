@@ -256,7 +256,7 @@ dartVarietalIDShiny <- function() {
     # list of samples for PCA
     ID_res <- reactiveVal(NULL)
 
-    SampleType <- TargetID <- res_ID <- NULL
+    reference <- TargetID <- res_ID <- NULL
 
     ### Close button ###
     observeEvent(input$close, {
@@ -285,7 +285,7 @@ dartVarietalIDShiny <- function() {
       snpGenotypes <- ds14.genotypic(snpReport)[, rownames(references)]
       distances <- dartDistanceMatrix(genotypic_data = snpGenotypes,
                                            sampleWiseAnalysis = TRUE)
-      refType_mapping <- references$RefType
+      refType_mapping <- references$variety
       names(refType_mapping) <- rownames(references)
       unique_refTypes <- unique(refType_mapping)
       non_distinct_refTypes_arr <-
@@ -353,11 +353,11 @@ dartVarietalIDShiny <- function() {
                    )
                  )))
         cluster_method <- "complete"
-        coloring <- as.character(infoFile$getReferences()$RefType)
+        coloring <- as.character(infoFile$getReferences()$variety)
         names(coloring) <- rownames(infoFile$getReferences())
         mapping <-
           paste(as.character(rownames(infoFile$getReferences())),
-                as.character(infoFile$getReferences()$RefType))
+                as.character(infoFile$getReferences()$variety))
         names(mapping) <-
           as.character(rownames(infoFile$getReferences()))
         hammingCo <-
@@ -499,7 +499,7 @@ dartVarietalIDShiny <- function() {
     observeEvent(input$run_pca, {
       mydata_tmp <- as.character(input$dataList)
       mydata_tmp2 <- res_ID$res_full[which(names(res_ID$res_full) == mydata_tmp)]
-      mydata_tmp3 <- mydata_tmp2[[1]][1:input$n_ref, "RefType"]
+      mydata_tmp3 <- mydata_tmp2[[1]][1:input$n_ref, "sample"]
       top_data <- mydata_tmp2[[1]][1:input$n_ref,]
       top_data$Probability <- round(top_data$Probability,2)
 

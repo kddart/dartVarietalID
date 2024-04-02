@@ -57,17 +57,17 @@ NumericVector p = NumericVector::create(q[z],1-q[z]);
     chr_pops <- split(chr_temp, 1:2)
 
     pop <- as.data.frame(matrix(ncol = 4, nrow = pop.size))
-    # first column stores SampleType
-    pop[, 1] <- ind_metrics$SampleType[pop_n]
+    # first column stores reference
+    pop[, 1] <- ind_metrics$reference[pop_n]
     # second column stores TargetID
     pop[, 2] <- ind_metrics$TargetID[pop_n]
     # third and fourth columns stores chromosomes
     pop[, 3] <- chr_pops[1]
     pop[, 4] <- chr_pops[2]
-    # fifth column stores Genotype
-    pop[, 5] <- ind_metrics$Genotype[pop_n]
-    # six column stores RefType
-    pop[, 6] <- ind_metrics$RefType[pop_n]
+    # fifth column stores sample
+    pop[, 5] <- ind_metrics$sample[pop_n]
+    # six column stores variety
+    pop[, 6] <- ind_metrics$variety[pop_n]
 
     pop_list[[pop_n]] <- pop
   }
@@ -122,7 +122,7 @@ for (int j = 0; j < loc; j++) {
     NULL
   })
   names(misc.info) <-
-    c("SampleType", "TargetID", "Genotype", "RefType", "ID")
+    c("reference", "TargetID", "sample", "variety", "ID")
   res <- list()
   temp <- as.data.frame(df_genotypes[, c("V1", "V2", "V5", "V6", "id")])
 

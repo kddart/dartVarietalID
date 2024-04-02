@@ -1,3 +1,35 @@
+
+# Function to estimate the semi-axes of an ellipsoid from a mesh3d object
+estimateSemiAxes <- function(mesh,centroid) {
+  # Calculate the distances of vertices from the centroid along each axis
+  distances <- t(mesh$vb[1:3,]-centroid)
+  # The semi-axes are approximated by the maximum absolute distance along each axis
+  semiAxes <- apply(abs(distances), 2, max)
+  return(semiAxes)
+}
+
+#get a box coordinates to put random points
+getBoundingBox <- function(center, axes) {
+  # Unpack the center coordinates and axes lengths
+  x0 <- center[1]
+  y0 <- center[2]
+  z0 <- center[3]
+  a <- axes[1]
+  b <- axes[2]
+  c <- axes[3]
+
+  # Calculate the bounding box coordinates
+  minX <- x0 - a
+  maxX <- x0 + a
+  minY <- y0 - b
+  maxY <- y0 + b
+  minZ <- z0 - c
+  maxZ <- z0 + c
+
+  return(list(min = c(minX, minY, minZ), max = c(maxX, maxY, maxZ)))
+}
+
+
 na_check <- function(x){
   temp <- sapply(x@gen, function(e){
     length(e@NA.posi)
@@ -8,10 +40,12 @@ na_check <- function(x){
   return(na_tmp)
 }
 
-readTargetInfoFile <- function(file,
-                               filterFields = c("Genotype",
-                                                "ExPlateBarcode",
-                                                "ExPlateWell")) {
+readTargetInfoFile <- function(file
+                               # ,
+                               # filterFields = c("Genotype",
+                               #                  "ExPlateBarcode",
+                               #                  "ExPlateWell")
+                               ) {
   obj <- {
   }
 
@@ -24,10 +58,12 @@ readTargetInfoFile <- function(file,
   # fix for no visible binding for global variable from CRAN checks
   TargetID <- SampleType <- RefType <- NULL
 
-  refField <- "RefType"
-  barcodeField <- "ExPlateBarcode"
-  wellField <- "ExPlateWell"
-  expectedFields <- c("TargetID", "SampleType", refField)
+  refField <- "variety"
+  # barcodeField <- "ExPlateBarcode"
+  # wellField <- "ExPlateWell"
+  # expectedFields <- c("TargetID", "SampleType", refField)
+  expectedFields <- c("TargetID", "reference", refField)
+
 
   if (length(intersect(expectedFields, names(obj$table))) !=
       length(expectedFields)) {
@@ -44,35 +80,41 @@ readTargetInfoFile <- function(file,
 
   }
   rownames(obj$table) <- obj$table$TargetID
-  obj$table <- subset(obj$table, select = -c(TargetID))
+  # obj$table <- subset(obj$table, select = -c(TargetID))
   obj$table <-
-    obj$table[, names(obj$table) %in% union(expectedFields,
-                                            filterFields)]
+    # obj$table[, names(obj$table) %in% union(expectedFields,
+    #                                         filterFields)]
+  obj$table[, expectedFields]
 
   obj$getReferences <- function() {
     refTable <-
-      obj$table[!is.na(obj$table$RefType) & obj$table$RefType !=
+      obj$table[!is.na(obj$table$variety) & obj$table$variety !=
                   "", ]
-    table <- subset(refTable, select = -c(SampleType))
-    table$ExPlateBarcode <-
-      sapply(table$ExPlateBarcode, as.character)
-    return(sortByRefTypeBarcodeWell_2(table))
+    # table <- subset(refTable, select = -c(SampleType))
+    table <- subset(refTable, select = -c(reference))
+    # table$ExPlateBarcode <-
+    #   sapply(table$ExPlateBarcode, as.character)
+    # return(sortByRefTypeBarcodeWell_2(table))
+    return(table)
+
   }
 
   obj$getSamples <- function() {
     refTable <-
-      obj$table[is.na(obj$table$RefType) | obj$table$RefType ==
+      obj$table[is.na(obj$table$variety) | obj$table$variety ==
                   "", ]
-    table <- subset(refTable, select = -c(RefType))
-    table$ExPlateBarcode <-
-      sapply(table$ExPlateBarcode, as.character)
-    return(sortByRefTypeBarcodeWell_2(table, refField = "SampleType"))
+    table <- subset(refTable, select = -c(variety))
+    # table$ExPlateBarcode <-
+    #   sapply(table$ExPlateBarcode, as.character)
+    # return(sortByRefTypeBarcodeWell_2(table, refField = "SampleType"))
+    return(table)
+
   }
   return(obj)
 }
 
 sortByRefTypeBarcodeWell_2 <- function(table,
-                                       refField = "RefType",
+                                       refField = "variety",
                                        barcodeField = "ExPlateBarcode",
                                        wellField = "ExPlateWell",
                                        priorOrderFields = c()) {
