@@ -328,27 +328,29 @@ runSampleAnalysis <- function(counts.file,
 
   if(overlap){
 
-    # # if unix
-    # if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
-    #
-    #   res <- parallel::mclapply(X = 1:length(TargetID.sample),
-    #                             FUN =
-    #                             function(x){
-    #                               overlap_proportion(
-    #                               test.sample = unname(TargetID.sample)[[x]],
-    #                               full.report = res_tmp,
-    #                               ref = test_pop_ref,
-    #                               sam = test_pop_sam,
-    #                               n.varieties=10,
-    #                               plot = FALSE)
-    #                             }
-    #                   ,
-    #                   mc.cores = ncores)
-    #
-    # }
-    #
-    # ## if windows
-    # if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+    # if unix
+    if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+
+      res <- parallel::mclapply(X = 1:length(TargetID.sample),
+ # res <- parallel::mclapply(X = 1:10,
+
+                                FUN =
+                                function(x){
+                                  overlap_proportion(
+                                  test.sample = unname(TargetID.sample)[[x]],
+                                  full.report = res_tmp,
+                                  ref = test_pop_ref,
+                                  sam = test_pop_sam,
+                                  n.varieties=10,
+                                  plot = FALSE)
+                                }
+                      ,
+                      mc.cores = ncores)
+
+    }
+
+    ## if windows
+    if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
 
       res <- lapply(1:length(TargetID.sample),function(x){
 
@@ -357,18 +359,19 @@ runSampleAnalysis <- function(counts.file,
                                    ref = test_pop_ref,
                                    sam = test_pop_sam,
                                    n.varieties=10,
-                                   plot = FALSE)
+                                   plot = TRUE)
 
         return(tmp)
 
       })
 
-    # }
+    }
 
-    res2 <- as.data.frame(Reduce(rbind,res))
-    colnames(res2) <- c("id","overlap")
-    res_summary <- cbind(res_summary,res2)
-    res_summary$overlap <- as.numeric(res_summary$overlap)
+    res2 <- lapply(res,"[",2)
+    res2 <- unlist(res2)
+    # colnames(res2) <- c("id","overlap")
+    # res_summary <- cbind(res_summary,res2)
+    res_summary$overlap <- as.numeric(res2)
   }
 
   if(correlation){
@@ -390,7 +393,7 @@ runSampleAnalysis <- function(counts.file,
   res_summary$NA.percentage <- round(res_summary$NA.percentage, 2)
   res_summary$Probability.reference <- round(res_summary$Probability.reference, 2)
   # res_summary$purityPercent <- round(res_summary$purityPercent, 2)
-
+  if (dis.mat || plot.ref) {
   return(list(
     res_summary = res_summary,
     res_full = res_tmp,
@@ -398,5 +401,14 @@ runSampleAnalysis <- function(counts.file,
     gl.samples = test_pop_sam,
 	ref_distance = t1
   ))
+  }else{
+    return(list(
+      res_summary = res_summary,
+      res_full = res_tmp,
+      gl.references = test_pop_ref,
+      gl.samples = test_pop_sam
+    ))
+
+  }
 
 }
