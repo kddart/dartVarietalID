@@ -52,8 +52,9 @@ ff <-
              pattern = "Counts.csv$",
              recursive = TRUE,
              full = TRUE)
+ff <- ff[-6]
 
-for (i in 7:length(ff)) {
+for (i in 1:length(ff)) {
   counts.file <- ff[i]
   ordnr <- gsub("_Counts.csv", "", basename(counts.file))
   filename <- file.path(gsub("input", "output/DAP", counts.file))
@@ -74,14 +75,14 @@ for (i in 7:length(ff)) {
   x <- runSampleAnalysis(
     counts.file = counts.file,
     info.file = info.file ,
-    ncores = parallel::detectCores()-2,
+    ncores = parallel::detectCores(),
     pop.size = 10,
-    dis.mat = FALSE,
-    plot.ref = FALSE,
+    dis.mat = F,
+    plot.ref = F,
     gen_dif = FALSE,
-    purity = FALSE,
-    overlap = FALSE,
-    correlation = FALSE,
+    purity = F,
+    overlap = F,
+    correlation = F,
     na.perc.threshold = 50
   )
 

@@ -24,7 +24,7 @@ calculatePurity <- function(genotypic_counts,
                                           varietiesDiscretised[[assigned_test_reference[[i]]]])
 
     data.frame(
-       purityPercent = result$purityPercent
+       purityPercent = 1-result$present_score
       # purityPercent = (result$present_score+(1-result$absent_score))/2
 
     )

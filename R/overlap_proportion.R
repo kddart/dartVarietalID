@@ -11,6 +11,8 @@ overlap_proportion <- function(test.sample,
   full_sample <- full.report[[test.sample]]
   # get the n closest references from the sample to test
   ref_pops <- full_sample[1:n.varieties,"variety"]
+  # ref_pops <- full_sample[1,"variety"]
+
   # get the closest references
   ref_test <- dartR::gl.keep.pop(ref,pop.list = ref_pops,verbose=0)
   # get the sample to test
@@ -49,21 +51,28 @@ center_r <- unlist(unname(colMeans(pcoa_scores[ref_p,1:3])))
 #generating the ellipsoids
 ellipseSam <- rgl::ellipse3d(cov(pcoa_scores[sam_p,1:3]),
                         centre = center_s,
-                        level = 0.99999)
+                        level = 0.999999)
 ellipseRef <- rgl::ellipse3d(cov(pcoa_scores[ref_p,1:3]),
                         centre = center_r,
-                        level = 0.99999)
+                        level = 0.999999)
 # get the semi-axes of an ellipsoid
 axes_ref <- estimateSemiAxes(mesh=ellipseRef,
                              centroid = center_r)
+axes_sam <- estimateSemiAxes(mesh=ellipseSam,
+                             centroid = center_s)
 # get a box coordinates to put random points
 box_r <- getBoundingBox(center_r,axes_ref)
-
-# random points within a box containing the ellipsoid
-lower <- box_r$min
-upper <- box_r$max
+box_s <- getBoundingBox(center_s,axes_sam)
+# Number of points to generate
 n <- 10000
-points_r <- matrix(runif(n * 3, lower, upper), ncol = 3, byrow = TRUE)
+# random points within a box containing the ellipsoid of the sample
+lower_s <- box_s$min
+upper_s <- box_s$max
+points_s <- matrix(runif(n * 3, lower_s, upper_s), ncol = 3, byrow = TRUE)
+# random points within a box containing the ellipsoid of the reference
+lower_r <- box_r$min
+upper_r <- box_r$max
+points_r <- matrix(runif(n * 3, lower_r, upper_r), ncol = 3, byrow = TRUE)
 
 means_r <- colMeans(t(ellipseRef$vb[1:3,]))
 covariance_r <- cov(t(ellipseRef$vb[1:3,]))
@@ -71,21 +80,41 @@ covariance_r <- cov(t(ellipseRef$vb[1:3,]))
 means_s <- colMeans(t(ellipseSam$vb[1:3,]))
 covariance_s <- cov(t(ellipseSam$vb[1:3,]))
 
-Z_r <- SIBER::pointsToEllipsoid(X=points_r,
-                         Sigma= covariance_r,
-                         mu=means_r )
-
-test_r <- SIBER::ellipseInOut(Z_r, p = 0.5)
-points_r <- points_r[test_r,]
-
-Z_s <- SIBER::pointsToEllipsoid(X=points_r,
+# Getting the points of the box that are inside the sample ellipse
+Z_s <- SIBER::pointsToEllipsoid(X=points_s,
                          Sigma= covariance_s,
                          mu=means_s )
+test_s <- SIBER::ellipseInOut(Z_s, p = 0.7)
+points_s <- points_s[test_s,]
 
-test_s <- SIBER::ellipseInOut(Z_s, p = 0.5)
-points_s <- points_r[test_s,]
+# Getting the points of the box that are inside the reference ellipse
+Z_r <- SIBER::pointsToEllipsoid(X=points_r,
+                                Sigma= covariance_r,
+                                mu=means_r)
+test_r <- SIBER::ellipseInOut(Z_r, p = 0.7)
+points_r <- points_r[test_r,]
 
-prop <- round((nrow(points_s)/nrow(points_r))*100,2)
+#get the points of the sample that are inside the reference ellipse
+Z_sINr <- SIBER::pointsToEllipsoid(X=points_s,
+                         Sigma= covariance_r,
+                         mu=means_r )
+test_sINr <- SIBER::ellipseInOut(Z_sINr, p = 0.7)
+points_sINr <- points_s[test_sINr,]
+
+#get the points of the reference that are inside the sample ellipse
+Z_rINs <- SIBER::pointsToEllipsoid(X=points_r,
+                                   Sigma= covariance_s,
+                                   mu=means_s )
+test_rINs <- SIBER::ellipseInOut(Z_rINs, p = 0.7)
+points_rINs <- points_r[test_rINs,]
+
+if(nrow(points_sINr) > 0 | nrow(points_rINs) > 0 ){
+  prop_sINr <- round((nrow(points_sINr)/nrow(points_s))*100,2)
+  prop_rINs <- round((nrow(points_rINs)/nrow(points_r))*100,2)
+  prop <- max(c(prop_sINr,prop_rINs))
+}else{
+  prop <- 0
+}
 
 if(plot){
 p <- plot_ly() %>%
@@ -98,7 +127,7 @@ p <- plot_ly() %>%
             ,
             marker = list(size = 6),
             color = pcoa_scores[,"pop"],
-            colors = polychrome(nPop(tog))
+            colors = c("black" ,polychrome(nPop(tog)))
   )%>%
   add_trace(x = ellipseSam$vb[1,],
             y = ellipseSam$vb[2,],
@@ -112,13 +141,28 @@ p <- plot_ly() %>%
             type = 'mesh3d',
             alphahull = 0,
             opacity = 0.4) %>%
-  add_trace(data = points_s,
-            x = points_s[,1],
-            y = points_s[,2],
-            z = points_s[,3],
+  add_trace(data = points_sINr,
+            x = points_sINr[,1],
+            y = points_sINr[,2],
+            z = points_sINr[,3],
+            type = "scatter3d",
+            mode = 'markers'
+  ) %>%
+  add_trace(data = prop_rINs,
+            x = points_rINs[,1],
+            y = points_rINs[,2],
+            z = points_rINs[,3],
             type = "scatter3d",
             mode = 'markers'
   )
+# %>%
+#   add_trace(data = points_s,
+#             x = points_s[,1],
+#             y = points_s[,2],
+#             z = points_s[,3],
+#             type = "scatter3d",
+#             mode = 'markers'
+#   )
 
 print(p)
 

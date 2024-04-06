@@ -237,6 +237,7 @@ runSampleAnalysis <- function(counts.file,
     res_tmp <- parallel::mclapply(X = top_ind,
                                   FUN = dart.assignment,
                                   ref = ref_pops_sep,
+                                  sam = sam_pops_sep,
                                   mc.cores = ncores)
 
   }
@@ -316,7 +317,7 @@ runSampleAnalysis <- function(counts.file,
                                 infoFile,
                                 assigned_test_reference,
                                 ncores)
-  res_summary <- cbind(res_summary,res_purity)
+  res_summary$purityPercent <- unlist(unname(res_purity))
   # Setting NAs to samples with more than 50% of missing data
   col_NAs <- c("Probability.reference",
                "purityPercent")
@@ -328,50 +329,73 @@ runSampleAnalysis <- function(counts.file,
 
   if(overlap){
 
-    # if unix
-    if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+    # # if unix
+    # if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+    #
+    #   res <- parallel::mclapply(X = 1:length(TargetID.sample),
+    #                             FUN = tryCatch({
+    #                               function(x){
+    #                                 overlap_proportion(
+    #                                   test.sample = unname(TargetID.sample)[[x]],
+    #                                   full.report = res_tmp,
+    #                                   ref = test_pop_ref,
+    #                                   sam = test_pop_sam,
+    #                                   n.varieties=10,
+    #                                   plot = FALSE)
+    #                                 }
+    #                               },
+    #                               # error handling
+    #                               error = function(e) {
+    #                                 return(NULL)
+    #                                 },
+    #                               # warning handling
+    #                               warning = function(w) {
+    #                                 return(NULL)
+    #                                 }),
+    #                             mc.cores = ncores)
+    # }
+    #
+    # ## if windows
+    # if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
 
-      res <- parallel::mclapply(X = 1:length(TargetID.sample),
- # res <- parallel::mclapply(X = 1:10,
+res <- lapply(1:length(TargetID.sample),function(x){
+  # res <- lapply(900:914,function(x){
+  tmp <- tryCatch({
+    overlap_proportion(test.sample= TargetID.sample[x],
+                       full.report = res_tmp,
+                       ref = test_pop_ref,
+                       sam = test_pop_sam,
+                       n.varieties=5,
+                       plot = F)
+  },
+  # error handling
+  error = function(e) {
+    return(NULL)
+  },
+  # warning handling
+  warning = function(w) {
+    return(NULL)
+  })
 
-                                FUN =
-                                function(x){
-                                  overlap_proportion(
-                                  test.sample = unname(TargetID.sample)[[x]],
-                                  full.report = res_tmp,
-                                  ref = test_pop_ref,
-                                  sam = test_pop_sam,
-                                  n.varieties=10,
-                                  plot = FALSE)
-                                }
-                      ,
-                      mc.cores = ncores)
+  return(tmp)
 
-    }
+})
 
-    ## if windows
-    if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+    # }
 
-      res <- lapply(1:length(TargetID.sample),function(x){
+res <- lapply(res,function(x){
+  if(is.null(x)){
+    x <- matrix(nrow = 1,ncol=2)
+    return(x)
+  }else{
+    return(x)
+  }
+})
 
-        tmp <-  overlap_proportion(test.sample= names(TargetID.sample)[x],
-                                   full.report = res_tmp,
-                                   ref = test_pop_ref,
-                                   sam = test_pop_sam,
-                                   n.varieties=10,
-                                   plot = TRUE)
+res2 <- lapply(res,"[",2)
+res2 <- unlist(res2)
+res_summary$overlap <- as.numeric(res2)
 
-        return(tmp)
-
-      })
-
-    }
-
-    res2 <- lapply(res,"[",2)
-    res2 <- unlist(res2)
-    # colnames(res2) <- c("id","overlap")
-    # res_summary <- cbind(res_summary,res2)
-    res_summary$overlap <- as.numeric(res2)
   }
 
   if(correlation){

@@ -14,7 +14,10 @@
 #' @export
 
 dart.assignment <- function(ref,
+                            sam,
                             unknown) {
+
+  sam_pop <- sam[[which(names(sam)==unknown$other$ind.metrics$TargetID[1])]]
 
   unknown_pop <- data.frame(gl2alleles(unknown))
 
@@ -54,6 +57,8 @@ dart.assignment <- function(ref,
     He <- mean(He.loc,na.rm =TRUE)
     return(He)
   }
+
+  Ho_sam <- pop.het_fun(sam_pop)
 
   # Ho <- lapply(1:length(ref),function(y){
   #   colMeans(as.matrix(ref[[y]]) == 1, na.rm = TRUE)
@@ -102,7 +107,7 @@ df_assign$hom2 <- df_assign$Frequency2 ^ 2
 
 # / df_assign$Ho
 # probability of being heterozygote (2pq)
-df_assign$het <- (2 * df_assign$Frequency1 * df_assign$Frequency2) / 0.6
+df_assign$het <- (2 * df_assign$Frequency1 * df_assign$Frequency2) / 0.5
 # if sample is homozygote for the reference allele, set probability of
 # homozygote for the alternative allele and heterozygote to 0
 df_assign[which(df_assign$a1 == df_assign$a2 &
@@ -120,7 +125,7 @@ df_assign$prob <- df_assign$hom1 + df_assign$hom2 + df_assign$het
 df_assign[which(is.na(df_assign$a1)), "prob"] <- NA
 # set -1 to loci that have probability of 0, i.e. if the reference is fixed
 # for one allele and the sample is homozygote for the the other allele
- df_assign[which(df_assign$prob == 0), "prob"] <- -1
+ # df_assign[which(df_assign$prob == 0), "prob"] <- -1
  # df_assign[which(df_assign$Ho>0.05 & df_assign$Ho<0.3), "prob"] <- NA
 
 # get the number of loci that do not have missing data in both, the sample and
@@ -133,7 +138,7 @@ ret[popx, "variety"] <- as.character(ref[[popx]]$other$ind.metrics$variety[1])
 ret[popx, "TargetID"] <- as.character(ref[[popx]]$other$ind.metrics$TargetID[1])
 ret[popx, "NumLoci"] <- n_loc
 # get the mean probability across all the loci
-ret[popx, "Probability"] <- (sum(df_assign$prob, na.rm = TRUE)/ n_loc) / (1-Ho_pop)
+ret[popx, "Probability"] <- (sum(df_assign$prob, na.rm = TRUE)/ n_loc) / (1-mean(Ho_pop,Ho_sam))
 # ret[popx, "Probability2"] <- ret[popx, "Probability"]/(1-Ho_pop)
   }
 # order references by probability
