@@ -46,7 +46,7 @@ test_pop_ref <- t1$gl.references
 test_pop_sam <- t1$gl.samples
 res_sum <- t1$res_summary
 
-x <- which(TargetID.sample=="3043235")
+x <- which(TargetID.sample=="3208973")
 
 res <- lapply(1:length(TargetID.sample),function(x){
   # res <- lapply(900:914,function(x){

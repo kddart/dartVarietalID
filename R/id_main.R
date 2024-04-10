@@ -247,22 +247,20 @@ runSampleAnalysis <- function(counts.file,
 
     res_tmp <- lapply(X = top_ind,
                       FUN = dart.assignment,
-                      ref = ref_pops_sep)
+                      ref = ref_pops_sep,
+                      sam = sam_pops_sep)
 
   }
 
-  if(gen_dif){
+  res_tmp_range <- data.table::rbindlist(res_tmp)
+  res_tmp_range2 <- range(res_tmp_range$Probability)
 
-    res_dif <- parallel::mclapply(X = sam_pops_sep,
-                                  FUN = dart.differentiation,
-                                  ref = ref_pops_sep,
-                                  mc.cores = ncores)
-    res_tmp2 <- lapply(1:length(res_dif),function(x){
-    tmp1 <- merge(res_tmp[[x]],res_dif[[x]],by="variety")
-    tmp1 <- tmp1[order(tmp1$Probability,decreasing = TRUE),]
-    })
-    res_tmp <- res_tmp2
-    }
+  res_tmp <- lapply(res_tmp,function(x){
+
+    x$Probability <- scales::rescale(x$Probability,to=c(0.5,1),from =res_tmp_range2 )
+    return(x)
+
+  })
 
   # summary results dataframe
   TargetID.sample <- unlist(lapply(top_ind,function(x){
@@ -280,20 +278,20 @@ runSampleAnalysis <- function(counts.file,
   Probability.reference <- res_tmp3$Probability
   NA.percentage <- round((1 - res_tmp3$NumLoci / nLoc(ref_sam_pops)) * 100,2)
 
-  if(gen_dif){
-  res_summary <- data.frame(TargetID.sample = TargetID.sample,
-                            sample.sample = sample.sample,
-                            TargetID.reference = TargetID.reference,
-                            sample.reference = sample.reference,
-                            variety.reference = variety.reference,
-                            NA.percentage = NA.percentage,
-                            Probability.reference = Probability.reference,
-                            Fst = res_tmp3$Fst,
-                            Fstp = res_tmp3$Fstp,
-                            Dest = res_tmp3$Dest,
-                            Gst_H = res_tmp3$Gst_H
-  )
-  }else{
+  # if(gen_dif){
+  # res_summary <- data.frame(TargetID.sample = TargetID.sample,
+  #                           sample.sample = sample.sample,
+  #                           TargetID.reference = TargetID.reference,
+  #                           sample.reference = sample.reference,
+  #                           variety.reference = variety.reference,
+  #                           NA.percentage = NA.percentage,
+  #                           Probability.reference = Probability.reference,
+  #                           Fst = res_tmp3$Fst,
+  #                           Fstp = res_tmp3$Fstp,
+  #                           Dest = res_tmp3$Dest,
+  #                           Gst_H = res_tmp3$Gst_H
+  # )
+  # }else{
     res_summary <- data.frame(TargetID.sample = TargetID.sample,
                               sample.sample = sample.sample,
                               TargetID.reference = TargetID.reference,
@@ -303,9 +301,41 @@ runSampleAnalysis <- function(counts.file,
                               Probability.reference = Probability.reference
     )
 
-  }
+  # }
 
   names(res_tmp) <- TargetID.sample
+
+
+  if(gen_dif){
+
+    # res_dif <- parallel::mclapply(X = sam_pops_sep,
+    #                               FUN = dart.differentiation,
+    #                               ref = ref_pops_sep,
+    #                               mc.cores = ncores)
+    # res_tmp2 <- lapply(1:length(res_dif),function(x){
+    # tmp1 <- merge(res_tmp[[x]],res_dif[[x]],by="variety")
+    # tmp1 <- tmp1[order(tmp1$Probability,decreasing = TRUE),]
+    # })
+    # res_tmp <- res_tmp2
+    dif_res_f <- NULL
+    for(y in 1:length(sam_pops_sep)){
+
+      sam <- names(sam_pops_sep)[y]
+      ref <- names(ref_pops_sep)[which(names(ref_pops_sep)==res_summary[y,"variety.reference"])]
+      sam_gl <- sam_pops_sep[[which(names(sam_pops_sep)==sam)]]
+      ref_gl <- ref_pops_sep[[which(names(ref_pops_sep)==ref)]]
+
+      sam_ref <- rbind(sam_gl,ref_gl)
+      pop(sam_ref) <- as.factor(pop(sam_ref))
+
+      dif_res <- dartR::utils.basic.stats(sam_ref)
+      dif_res <- dif_res$overall
+      dif_res <- dif_res["Fstp"]
+      dif_res_f <- c(dif_res_f,dif_res)
+    }
+    res_summary$fst <- unname(dif_res_f)
+
+  }
 
   if(purity){
   # Calculating purity
@@ -365,7 +395,7 @@ res <- lapply(1:length(TargetID.sample),function(x){
                        full.report = res_tmp,
                        ref = test_pop_ref,
                        sam = test_pop_sam,
-                       n.varieties=5,
+                       n.varieties=10,
                        plot = F)
   },
   # error handling

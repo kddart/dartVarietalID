@@ -81,7 +81,7 @@ dart.assignment <- function(ref,
   # for each reference
   for (popx in 1:length(ref)) {
 
-    Ho_pop <- pop.het_fun(ref[[popx]])
+    Ho_pop <- pop.het_fun(df=ref[[popx]])
 
     popfreq <- frequencies[[popx]]
 
@@ -138,7 +138,10 @@ ret[popx, "variety"] <- as.character(ref[[popx]]$other$ind.metrics$variety[1])
 ret[popx, "TargetID"] <- as.character(ref[[popx]]$other$ind.metrics$TargetID[1])
 ret[popx, "NumLoci"] <- n_loc
 # get the mean probability across all the loci
-ret[popx, "Probability"] <- (sum(df_assign$prob, na.rm = TRUE)/ n_loc) / (1-mean(Ho_pop,Ho_sam))
+het_correction <- 1 - ((Ho_pop+Ho_sam)/2)
+ret[popx, "Probability"] <- (sum(df_assign$prob, na.rm = TRUE)/ n_loc) / het_correction
+# ret[popx, "Probability"] <- (sum(df_assign$prob, na.rm = TRUE)/ n_loc) / (1-Ho_pop)
+
 # ret[popx, "Probability2"] <- ret[popx, "Probability"]/(1-Ho_pop)
   }
 # order references by probability

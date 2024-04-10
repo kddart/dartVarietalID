@@ -1,4 +1,6 @@
-
+# library(tictoc)
+library(dartVarietalID)
+# tic()
 DAP_write_excel <- function(x, info.n, filename) {
   info <- read.csv(info.n)
   nms <- names(x$res_full)
@@ -29,7 +31,7 @@ DAP_write_excel <- function(x, info.n, filename) {
   writexl::write_xlsx(x[1:3], paste0(filename, ".xlsx"))
 }
 
-library(dartVarietalID)
+
 
 host <- system("hostname", TRUE)
 if (host == "LAPTOP-IVSPBGCA") {
@@ -52,9 +54,11 @@ ff <-
              pattern = "Counts.csv$",
              recursive = TRUE,
              full = TRUE)
-ff <- ff[-6]
+# ff <- ff[-6]
 
-for (i in 1:length(ff)) {
+# for (i in 1:length(ff)) {
+  for (i in 7:10) {
+
   counts.file <- ff[i]
   ordnr <- gsub("_Counts.csv", "", basename(counts.file))
   filename <- file.path(gsub("input", "output/DAP", counts.file))
@@ -76,10 +80,11 @@ for (i in 1:length(ff)) {
     counts.file = counts.file,
     info.file = info.file ,
     ncores = parallel::detectCores(),
+    # ncores = 12,
     pop.size = 10,
     dis.mat = F,
     plot.ref = F,
-    gen_dif = FALSE,
+    gen_dif = F,
     purity = F,
     overlap = F,
     correlation = F,
@@ -92,3 +97,5 @@ for (i in 1:length(ff)) {
   # fpdf <- paste0(ordnr, "_ref_distance.pdf")
   # file.rename(fpdf, file.path("output/DAP", fpdf))
 }
+# toc()
+

@@ -1,50 +1,23 @@
 
-overlap_proportion <- function(test.sample,
-                               full.report,
-                               ref,
-                               sam,
-                               n.varieties=10,
+overlap_proportion <- function(tog_gl,
+                               test.sample,
+                               test.ref,
+                               # ref,
+                               # sam,
+                               # n.varieties=10,
                                plot = TRUE){
 
+print(test.sample)
 
-  # get the sample to test from the full report
-  full_sample <- full.report[[test.sample]]
-  # get the n closest references from the sample to test
-  ref_pops <- full_sample[1:n.varieties,"variety"]
-  # ref_pops <- full_sample[1,"variety"]
+          pcoa <- adegenet::glPca(tog_gl,
+                                  nf = 3,
+                                  loadings = FALSE)
 
-  # get the closest references
-  ref_test <- dartR::gl.keep.pop(ref,pop.list = ref_pops,verbose=0)
-  # get the sample to test
-  sam_test <- dartR::gl.keep.pop(sam,pop.list = test.sample,verbose=0)
-  # merging sample to test and closest references
-  tog <- rbind(ref_test,sam_test)
-  tog$other$loc.metrics <- ref_test$other$loc.metrics
-  tog@other$loc.metrics.flags$monomorphs <- FALSE
-
-  tog <- dartR::gl.filter.callrate(tog,
-                            threshold = 1,
-                            verbose = 0)
-    # if unix
-    if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
-      pca <- adegenet::glPca(tog,
-                              nf = 3,
-                              parallel = FALSE,
-                              loadings = FALSE)
-    }
-
-    ## if windows
-    if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
-      pca <- adegenet::glPca(tog,
-                              nf = 3,
-                              parallel = TRUE,
-                              loadings = FALSE)
-    }
-
-pcoa_scores <- as.data.frame(pca$scores)
-pcoa_scores$pop <- as.character(pop(tog))
+pcoa_scores <- as.data.frame(pcoa$scores)
+# pcoa_scores <- as.data.frame(apply(pcoa_scores,2,scales::rescale))
+pcoa_scores$pop <- as.character(pop(tog_gl))
 sam_p <- which(pcoa_scores$pop==test.sample)
-ref_p <- which(pcoa_scores$pop==full_sample[1,"variety"])
+ref_p <- which(pcoa_scores$pop==test.ref)
 # get the center of ellipsoids
 center_s <- unlist(unname(colMeans(pcoa_scores[sam_p,1:3])))
 center_r <- unlist(unname(colMeans(pcoa_scores[ref_p,1:3])))
@@ -127,7 +100,7 @@ p <- plot_ly() %>%
             ,
             marker = list(size = 6),
             color = pcoa_scores[,"pop"],
-            colors = c("black" ,polychrome(nPop(tog)))
+            colors = c("black" ,polychrome(nPop(tog_gl)))
   )%>%
   add_trace(x = ellipseSam$vb[1,],
             y = ellipseSam$vb[2,],
@@ -148,7 +121,7 @@ p <- plot_ly() %>%
             type = "scatter3d",
             mode = 'markers'
   ) %>%
-  add_trace(data = prop_rINs,
+  add_trace(data = points_rINs,
             x = points_rINs[,1],
             y = points_rINs[,2],
             z = points_rINs[,3],

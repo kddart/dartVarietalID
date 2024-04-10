@@ -3,11 +3,12 @@ calculatePurity <- function(genotypic_counts,
                             assigned_test_reference,
                             ncores) {
   infoFile_references <- infoFile$getReferences()
+  infoFile_references$variety <- gsub(" ","",infoFile_references$variety )
   refsWithTargetID <- data.frame(TargetID = rownames(infoFile_references),
                                  RefType = infoFile_references$variety)
-
-  varietiesGenotypes <- extractVarietyGenotypes(genotypic_counts,
-                                                refsWithTargetID)
+  refsWithTargetID$RefType <- gsub(" ","",refsWithTargetID$RefType)
+  varietiesGenotypes <- extractVarietyGenotypes(genotypes=genotypic_counts,
+                                                meta=refsWithTargetID)
   varietiesGenotypesWithStats <- summaryStatsVarietyGenotypes(varietiesGenotypes,
                                                               n.cores = ncores)
   varietiesDiscretised <- lapply(varietiesGenotypesWithStats,
