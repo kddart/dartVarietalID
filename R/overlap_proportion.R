@@ -7,8 +7,8 @@ overlap_proportion <- function(tog_gl,
                                # n.varieties=10,
                                plot = TRUE){
 
-print(test.sample)
-
+# print(test.sample)
+  # tog_gl = test_gl[[5]][[3]]
           pcoa <- adegenet::glPca(tog_gl,
                                   nf = 3,
                                   loadings = FALSE)
@@ -80,11 +80,11 @@ Z_rINs <- SIBER::pointsToEllipsoid(X=points_r,
                                    mu=means_s )
 test_rINs <- SIBER::ellipseInOut(Z_rINs, p = 0.7)
 points_rINs <- points_r[test_rINs,]
-
-if(nrow(points_sINr) > 0 | nrow(points_rINs) > 0 ){
+points_left <- sum(nrow(points_sINr), nrow(points_rINs),na.rm = T)
+if(points_left > 0 ){
   prop_sINr <- round((nrow(points_sINr)/nrow(points_s))*100,2)
   prop_rINs <- round((nrow(points_rINs)/nrow(points_r))*100,2)
-  prop <- max(c(prop_sINr,prop_rINs))
+  prop <- max(c(prop_sINr,prop_rINs),na.rm = T)
 }else{
   prop <- 0
 }

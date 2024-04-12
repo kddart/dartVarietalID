@@ -1,22 +1,29 @@
+library(dartR)
 rds_files <-  list.files("/Users/mijangos/DAP_output/DAP",
-           pattern = ".rds",
-           full.names = T)
+                         pattern = ".rds",
+                         full.names = T)
 
 ncores <- 12
-tot_sum <- as.data.frame(matrix(ncol=8))
-colnames(tot_sum) <- c("TargetID.sample"  ,     "sample.sample"   ,
-                        "TargetID.reference"  ,  "sample.reference" ,
-                        "variety.reference" ,   "NA.percentage"   ,
-                        "Probability.reference","overlap")
+tot_sum <- as.data.frame(matrix(ncol = 8))
+colnames(tot_sum) <- c(
+  "TargetID.sample"  ,
+  "sample.sample"   ,
+  "TargetID.reference"  ,
+  "sample.reference" ,
+  "variety.reference" ,
+  "NA.percentage"   ,
+  "Probability.reference",
+  "overlap"
+)
 overlap_res <- as.list(1:10)
-message_parallel <- function(...){
-  system(sprintf('echo "\n%s\n"', paste0(..., collapse="")))
+message_parallel <- function(...) {
+  system(sprintf('echo "\n%s\n"', paste0(..., collapse = "")))
 }
-library(tictoc)
+# library(tictoc)
 library(dartVarietalID)
-n.varieties <-10
-for(i in 1:length(rds_files)){
-  tic()
+n.varieties <- 5
+for (i in 3:length(rds_files)) {
+  # tic()
   print(i)
   t1 <- readRDS(rds_files[i])
   TargetID.sample <- t1$res_summary$TargetID.sample
@@ -44,104 +51,112 @@ for(i in 1:length(rds_files)){
   if (length(all_NAs) > 0) {
     sam_pops_sep <- sam_pops_sep[-(all_NAs)]
   }
-  print(paste(length(sam_pops_sep),"samples"))
+  print(paste(length(sam_pops_sep), "samples"))
 
-  fil_mono <- function(x){
-    mat <- as.matrix(x)
-    hom_ref <- which(apply(mat,2,\(x)all(x==0,na.rm=T))==T)
-    hom_alt <- which(apply(mat,2,\(x)all(x==2,na.rm=T))==T)
-    all_na <- which(apply(mat,2,\(x)all(is.na(x)))==T)
-    loc.list <- unique(c(hom_ref,hom_alt,all_na))
-    x <- x[,-loc.list]
-    return(x)
-  }
+  # fil_mono <- function(x) {
+  #   mat <- as.matrix(x)
+  #   hom_ref <- which(apply(mat, 2, \(y)all(y == 0, na.rm = T)) == T)
+  #   hom_alt <- which(apply(mat, 2, \(y)all(y == 2, na.rm = T)) == T)
+  #   all_na <- which(apply(mat, 2, \(y)all(is.na(y))) == T)
+  #   loc.list <- unique(c(hom_ref, hom_alt, all_na))
+  #   x <- x[, -loc.list]
+  #   return(x)
+  # }
 
-  test_gl <- lapply(1:10,function(x){
-    sam_name <- names(sam_pops_sep[x])
+  test_gl <- lapply(1:length(sam_pops_sep), function(z) {
+    sam_name <- names(sam_pops_sep[z])
     # get the sample to test
-    sam_gl <- sam_pops_sep[[x]]
+    sam_gl <- sam_pops_sep[[z]]
     # get the closest references
-    ref_pops <- res_tmp[[sam_name]][1:n.varieties,"variety"]
-    ref_gl <- dartR::gl.keep.pop(test_pop_ref,pop.list = ref_pops,verbose=0)
-    tog <- rbind(ref_gl,sam_gl)
-    tog$other$loc.metrics <- ref_gl$other$loc.metrics
-    tog@other$loc.metrics.flags$monomorphs <- FALSE
-    tog <- dartR::gl.filter.callrate(tog,
-                                 threshold = 1,
-                                 verbose = 0)
-    tog <- fil_mono(tog)
+    ref_pops <- res_tmp[[sam_name]][1:n.varieties, "variety"]
+    ref_gl <-
+      dartR::gl.keep.pop(test_pop_ref, pop.list = ref_pops, verbose = 0)
+    tog <- rbind(ref_gl, sam_gl)
+    # tog$other$loc.metrics <- ref_gl$other$loc.metrics
+    # tog@other$loc.metrics.flags$monomorphs <- FALSE
+    # tog <- dartR::gl.filter.callrate(tog,
+    #                              threshold = 1,
+    #                              verbose = 0)
+    tog <- gl.filter.monomorphs(tog,verbose = 0)
 
-    return(list(sam = sam_name,
-                ref = ref_pops[1],
-                tog_gl = tog))
+    return(list(
+      sam = sam_name,
+      ref = ref_pops[1],
+      tog_gl = tog
+    ))
   })
 
-  res <- lapply(1:10,function(x){
-    # res <- lapply(1:10,function(x){
+  # # res <- parallel::mclapply(X = 1:length(test_gl),
+  res <- parallel::mclapply(X = 1:10,
 
-     tmp <- tryCatch({
+                            FUN = tryCatch({
+                              function(x) {
+                                overlap_proportion(
+                                  tog_gl = test_gl[[x]][[3]],
+                                  test.sample = test_gl[[x]][[1]],
+                                  test.ref = test_gl[[x]][[2]],
 
-      # res <- parallel::mclapply(X = 1:length(test_gl),
-      #                             FUN = tryCatch({
-      #                               function(x){
-      #                                 overlap_proportion(
-      #                             tog_gl = test_gl[[x]][[3]],
-      #                                                      test.sample = test_gl[[x]][[1]],
-      #                                                      test.ref = test_gl[[x]][[2]],
-      #
-      #                                   plot = FALSE)
-      #                                 }
-      #                               },
-      #                               # error handling
-      #                               error = function(e) {
-      #                                 return(NULL)
-      #                                 },
-      #                               # warning handling
-      #                               warning = function(w) {
-      #                                 return(NULL)
-      #                                 }),
-      #                             mc.cores = ncores)
+                                  plot = FALSE
+                                )
+                              }
+                            },
+                            # error handling
+                            error = function(e) {
+                              return(NULL)
+                            },
+                            # warning handling
+                            warning = function(w) {
+                              return(NULL)
+                            }),
+                            mc.cores = ncores)
+# tic()
+  # res <- lapply(1:length(test_gl), function(x) {
+  #   tmp <- tryCatch({
+  #     overlap_proportion(
+  #       tog_gl = test_gl[[x]][[3]],
+  #       test.sample = test_gl[[x]][[1]],
+  #       test.ref = test_gl[[x]][[2]],
+  #       # test.sample = TargetID.sample[x],
+  #       # full.report = res_tmp,
+  #       # ref = test_pop_ref,
+  #       # sam = test_pop_sam,
+  #       # n.varieties=10,
+  #       plot = F
+  #     )
+  #   },
+  #   # error handling
+  #   error = function(e) {
+  #     return(NULL)
+  #   },
+  #   # warning handling
+  #   warning = function(w) {
+  #     return(NULL)
+  #   })
+  #
+  #   return(tmp)
+  #
+  # })
+  # toc()
 
-  overlap_proportion(tog_gl = test_gl[[x]][[3]],
-                     test.sample = test_gl[[x]][[1]],
-                     test.ref = test_gl[[x]][[2]],
-                     # test.sample = TargetID.sample[x],
-                     # full.report = res_tmp,
-                     # ref = test_pop_ref,
-                     # sam = test_pop_sam,
-                     # n.varieties=10,
-                     plot = F)
-    },
-    # error handling
-    error = function(e) {
-      return(NULL)
-    },
-    # warning handling
-    warning = function(w) {
-      return(NULL)
-    })
-
-    return(tmp)
-
-  })
-
-  res <- lapply(res,function(x){
-    if(is.null(x)){
-      x <- matrix(nrow = 1,ncol=2)
+  res <- lapply(res, function(x) {
+    if (is.null(x)) {
+      x <- matrix(nrow = 1, ncol = 2)
       return(x)
-    }else{
+    } else{
       return(x)
     }
   })
 
-  res2 <- lapply(res,"[",2)
+  res2 <- lapply(res, "[", 2)
   res2 <- unlist(res2)
   overlap_res[[i]] <- as.numeric(res2)
-toc()
+  # toc()
 
 }
 
-tot_sum <- tot_sum[-1,]
+overlap_res2 <- saveRDS(overlap_res,"overlap_res.rds")
+lapply(overlap_res2,function(x){sum(is.na(x))})
+tot_sum <- tot_sum[-1, ]
 
 host <- system("hostname", TRUE)
 if (host == "LAPTOP-IVSPBGCA") {
@@ -160,17 +175,17 @@ if (host == "LAPTOP-IVSPBGCA") {
 setwd(path)
 
 ff <-
-  list.files("DAP_input",
+  list.files("/Users/mijangos/DAP_input",
              pattern = "Counts.csv$",
              recursive = TRUE,
              full = TRUE)
-ff <- ff[-6]
+# ff <- ff[-6]
 
 rds_files <-  list.files("/Users/mijangos/DAP_output/DAP",
                          pattern = ".rds",
                          full.names = T)
 
-r1_fin <- NULL
+corr_res <- as.list(1:10)
 
 for (i in 1:length(ff)) {
   counts.file <- ff[i]
@@ -183,7 +198,7 @@ for (i in 1:length(ff)) {
   # dir.create(dirname(filename), FALSE, TRUE)
 
   # ojo: using the fixed references
-  info.file <- file.path("DAP_input",
+  info.file <- file.path("/Users/mijangos/DAP_input",
                          gsub(
                            "Counts.csv$",
                            "variety-info-refined.csv",
@@ -197,33 +212,33 @@ for (i in 1:length(ff)) {
   res_summary <-  t1$res_summary
 
   counts <- ref_sam$counts
-  cor_df <- res_summary[,c("TargetID.sample","TargetID.reference")]
-  r1 <-apply(cor_df,1,function(x){
-    summary(lm(counts[,x[1]]~
-                 counts[,x[2]]))$r.squared
+  cor_df <- res_summary[, c("TargetID.sample", "TargetID.reference")]
+  r1 <- apply(cor_df, 1, function(x) {
+    summary(lm(counts[, x[1]] ~
+                 counts[, x[2]]))$r.squared
   })
 
-  r1_fin <- c(r1_fin, r1)
+  corr_res[[i]] <- r1
 
 }
-
+saveRDS(corr_res,"corr_res.rds")
 tot_sum$corr <- r1_fin
 
-saveRDS(tot_sum,"tot_sum.rds")
+saveRDS(tot_sum, "tot_sum.rds")
 tot_sum <- readRDS("tot_sum.rds")
 
-more100 <- tot_sum[which(tot_sum$Probability.reference>100),]
-more100 <- more100[order(more100$Probability.reference,decreasing = T),]
+more100 <- tot_sum[which(tot_sum$Probability.reference > 100), ]
+more100 <-
+  more100[order(more100$Probability.reference, decreasing = T), ]
 more100_pur <- more100[which(more100$purity)]
 
 library(dartVarietalID)
 rds_files <-  list.files("/Users/mijangos/DAP_output/DAP",
                          pattern = ".rds",
                          full.names = T)
-crop_names <- lapply(basename(rds_files),function(x){
-  gsub(
-    "_DAP.rds$",
-    "",x)
+crop_names <- lapply(basename(rds_files), function(x) {
+  gsub("_DAP.rds$",
+       "", x)
 })
 crop_names <- unlist(crop_names)
 p1_fin <- NULL
@@ -241,7 +256,7 @@ for (i in 8:length(ff)) {
   # dir.create(dirname(filename), FALSE, TRUE)
 
   # ojo: using the fixed references
-  info.file <- file.path("DAP_input",
+  info.file <- file.path("/Users/mijangos/DAP_input",
                          gsub(
                            "Counts.csv$",
                            "variety-info-refined.csv",
@@ -266,7 +281,7 @@ for (i in 8:length(ff)) {
 
 }
 
-saveRDS(purity_list,"purity_list.rds")
+saveRDS(purity_list, "purity_list.rds")
 
 tot_sum$purity <- p1_fin
 
@@ -277,41 +292,46 @@ res_summary$overlap <- res_sum$overlap
 res_summary$corr <- res_sum$corr
 
 # tot_sum$Probability.reference <- scales::rescale(tot_sum$Probability.reference, to = c(0,100) )
-ggplot(res_summary,aes(x= res_summary$Probability.reference,
-                       y= res_summary$corr))+
-  geom_pointdensity()+
-  scale_color_viridis() +
-   geom_smooth()
-
-ggplot(tot_sum,aes(x= tot_sum$Probability.reference,
-                       y= tot_sum$corr))+
-  geom_pointdensity()+
+ggplot(res_summary,
+       aes(x = res_summary$Probability.reference,
+           y = res_summary$corr)) +
+  geom_pointdensity() +
   scale_color_viridis() +
   geom_smooth()
 
-ggplot(tot_sum,aes(x= tot_sum$corr,
-                   y= tot_sum$overlap))+
+ggplot(tot_sum,
+       aes(x = tot_sum$Probability.reference,
+           y = tot_sum$corr)) +
+  geom_pointdensity() +
+  scale_color_viridis() +
+  geom_smooth()
+
+ggplot(tot_sum, aes(x = tot_sum$corr,
+                    y = tot_sum$overlap)) +
   geom_point() +
   geom_smooth()
 
 
-ggplot(more100,aes(x= more100$Probability.reference,
-                       y= more100$corr))+
-  geom_pointdensity()+
+ggplot(more100,
+       aes(x = more100$Probability.reference,
+           y = more100$corr)) +
+  geom_pointdensity() +
   # geom_point() + +
-  scale_color_viridis()+
+  scale_color_viridis() +
   geom_smooth()
 
-ggplot(more100,aes(x= more100$Probability.reference,
-                       y= more100$purity))+
-  geom_pointdensity()+
+ggplot(more100,
+       aes(x = more100$Probability.reference,
+           y = more100$purity)) +
+  geom_pointdensity() +
   # geom_point() + +
   scale_color_viridis()
 # +
 #   geom_smooth()
 
-ggplot(res_summary,aes(x= res_summary$corr,
-                       y= 1-res_summary$purityPercent))+
+ggplot(res_summary,
+       aes(x = res_summary$corr,
+           y = 1 - res_summary$purityPercent)) +
   geom_point() +
   geom_smooth()
 
@@ -319,43 +339,37 @@ ggplot(res_summary,aes(x= res_summary$corr,
 
 
 r1 <- res_summary[which(res_summary$overlap < 5 &
-                          res_summary$Probability.reference >90),]
-r1 <- r1[order(r1$Probability.reference,decreasing = T),]
+                          res_summary$Probability.reference > 90), ]
+r1 <- r1[order(r1$Probability.reference, decreasing = T), ]
 
 
 
 
 dart.differentiation <- function(ref,
                                  sam) {
+  pop.list <- lapply(ref, rbind, sam)
 
-  pop.list <- lapply(ref,rbind,sam)
-
-  dif_res <- lapply(pop.list,dartR:::utils.basic.stats)
-  dif_res <- lapply(dif_res,"[[","overall")
-  dif_res <- lapply(dif_res,"[",c("Fst","Fstp","Dest","Gst_H"))
-  dif_res <- Reduce(rbind,dif_res)
-
+  dif_res <- lapply(pop.list, dartR:::utils.basic.stats)
+  dif_res <- lapply(dif_res, "[[", "overall")
+  dif_res <- lapply(dif_res, "[", c("Fst", "Fstp", "Dest", "Gst_H"))
+  dif_res <- Reduce(rbind, dif_res)
 
 
-  ret <- data.frame(
-    # TargetID = NA,
+
+  ret <- data.frame(# TargetID = NA,
     # sample = NA,
     variety = NA)
 
   # for each reference
   for (popx in 1:length(ref)) {
     # ret[popx, "sample"] <- as.character(ref[[popx]]$other$ind.metrics$sample[1])
-    ret[popx, "variety"] <- as.character(ref[[popx]]$other$ind.metrics$variety[1])
+    ret[popx, "variety"] <-
+      as.character(ref[[popx]]$other$ind.metrics$variety[1])
     # ret[popx, "TargetID"] <- as.character(ref[[popx]]$other$ind.metrics$TargetID[1])
   }
 
-  ret <- cbind(ret,dif_res)
+  ret <- cbind(ret, dif_res)
 
   return(ret)
 
 }
-
-
-
-
-

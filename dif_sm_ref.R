@@ -1,3 +1,44 @@
+shannon <- function(x) {
+  x <- x[x > 0]
+  p <- x / sum(x)
+  out <- - sum(p * log(p))
+  return(out)
+}
+
+MI <- function(x){
+
+  mat <- as.matrix(x)
+
+  n <- sum(mat)
+  prob.hat <- mat / n
+  px.hat <- apply(prob.hat, 1, sum)
+  py.hat <- apply(prob.hat, 2, sum)
+  I.hat <- shannon(px.hat) + shannon(py.hat) - shannon(prob.hat)
+  # MLE of Mutual Information!
+  return(I.hat)
+}
+
+mutual_information <- function(mat) {
+  EstMLEFun <- function(mat) {
+    # MLE
+    entropyFun <- function(p) {
+      p <- p[p > 0]
+      out <- -sum(p * log(p))
+      return(out)
+    }
+    n <- sum(mat)
+    prob.hat <- mat / n
+    px.hat <- apply(prob.hat, 1, sum)
+    py.hat <- apply(prob.hat, 2, sum)
+    I.hat <- entropyFun(px.hat) + entropyFun(py.hat) - entropyFun(prob.hat)
+    # MLE of Mutual Information!
+    return(I.hat)
+  }
+  mydata <- as.matrix(mat)
+  est <- EstMLEFun(mydata)
+  return(est)
+}
+
 rds_files <-  list.files("/Users/mijangos/DAP_output/DAP",
                          pattern = ".rds",
                          full.names = T)
@@ -24,6 +65,7 @@ for(i in 1:length(rds_files)){
   ref_pops_sep <- seppop(test_pop_ref)
 
   dif_res_f <- NULL
+
   for(y in 1:length(sam_pops_sep)){
 
     sam <- names(sam_pops_sep)[y]
@@ -33,17 +75,26 @@ for(i in 1:length(rds_files)){
 
     sam_ref <- rbind(sam_gl,ref_gl)
     pop(sam_ref) <- as.factor(pop(sam_ref))
-
-    dif_res <- dartR::utils.basic.stats(sam_ref)
-    dif_res <- dif_res$overall
-    dif_res <- dif_res["Fstp"]
+    sam_ref$other$loc.metrics <- ref_gl$other$loc.metrics
+    sam_ref@other$loc.metrics.flags$monomorphs <- FALSE
+    dif_res <- dartR::gl.dist.pop(sam_ref, method = "nei",
+                       plot.out = FALSE,
+                       verbose = 0)
+    dif_res <- as.numeric(dif_res)
+    # sam_ref$other$loc.metrics <- ref_gl$other$loc.metrics
+    # sam_ref@other$loc.metrics.flags$monomorphs <- FALSE
+    # sam_ref2 <- gl.filter.callrate(sam_ref,threshold = 1,verbose = 0, plot.out = F)
+    # dif_res <- mutual_information(as.matrix(sam_ref2))
+    # dif_res <- dartR::utils.basic.stats(sam_ref)
+    # dif_res <- dif_res$overall
+    # dif_res <- dif_res["Gst_H"]
     dif_res_f <- c(dif_res_f,dif_res)
   }
   fst_list[[i]] <- unname(dif_res_f)
 
 }
 
-saveRDS(fst_list,"fst_list.rds")
+saveRDS(fst_list,"fst_list_Neis.rds")
 
 res_sum_fin <- as.list(1:10)
 names(res_sum_fin) <- crop_names
