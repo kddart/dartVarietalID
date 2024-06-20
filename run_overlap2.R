@@ -2,7 +2,7 @@ library(dartR)
 library(dartVarietalID)
 n.varieties <- 10
 rds_files <-  list.files("/Users/mijangos/DAP_output/DAP",
-                         pattern = ".rds",
+                         pattern = "self.rds",
                          full.names = T)
 
 ncores <- 10
@@ -41,6 +41,8 @@ for (i in 1:length(rds_files)) {
     sam_gl <- sam_pops_sep[[z]]
     # get the closest references
     ref_pops <- res_tmp[[sam_name]][1:n.varieties, "variety"]
+    # ref_pops <- res_tmp[[sam_name]][1:n.varieties, "TargetID"]
+
     ref_gl <-
       gl.keep.pop(test_pop_ref, pop.list = ref_pops, verbose = 0)
     tog <- rbind(ref_gl, sam_gl)
@@ -120,4 +122,4 @@ for (i in 1:length(rds_files)) {
 }
 na.res <- which(is.na(res2))
 lapply(overlap_res,function(x){sum(is.na(x))})
-saveRDS(overlap_res,"overlap_res.rds")
+saveRDS(overlap_res,"overlap_res_self.rds")

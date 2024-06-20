@@ -1,61 +1,10 @@
-library(dartR)
-library(data.table)
+run.diff <- function(rds.file,
+                     n.ref = 10){
 
-shannon <- function(x) {
-  x <- x[x > 0]
-  p <- x / sum(x)
-  out <- -sum(p * log(p))
-  return(out)
-}
+crop_name <- gsub(".rds$","", basename(rds.file))
 
-MI <- function(x) {
-  mat <- as.matrix(x)
-
-  n <- sum(mat)
-  prob.hat <- mat / n
-  px.hat <- apply(prob.hat, 1, sum)
-  py.hat <- apply(prob.hat, 2, sum)
-  I.hat <- shannon(px.hat) + shannon(py.hat) - shannon(prob.hat)
-  # MLE of Mutual Information!
-  return(I.hat)
-}
-
-mutual_information <- function(mat) {
-  EstMLEFun <- function(mat) {
-    # MLE
-    entropyFun <- function(p) {
-      p <- p[p > 0]
-      out <- -sum(p * log(p))
-      return(out)
-    }
-    n <- sum(mat)
-    prob.hat <- mat / n
-    px.hat <- apply(prob.hat, 1, sum)
-    py.hat <- apply(prob.hat, 2, sum)
-    I.hat <-
-      entropyFun(px.hat) + entropyFun(py.hat) - entropyFun(prob.hat)
-    # MLE of Mutual Information!
-    return(I.hat)
-  }
-  mydata <- as.matrix(mat)
-  est <- EstMLEFun(mydata)
-  return(est)
-}
-
-rds_files <-  list.files("/Users/mijangos/DAP_output/DAP",
-                         pattern = "_DAP_240514.rds",
-                         full.names = T)
-crop_names <- lapply(basename(rds_files), function(x) {
-  gsub("_DAP_240514.rds$",
-       "", x)
-})
-crop_names <- unlist(crop_names)
-fst_list <- as.list(1:10)
-names(fst_list) <- crop_names
-for (i in 1:length(rds_files)) {
-  print(crop_names[i])
-  t1 <- readRDS(rds_files[i])
-  # TargetID.sample <- t1$res_summary$TargetID.sample
+  print(crop_name)
+  t1 <- readRDS(rds.file)
   res_tmp <- t1$res_full
   names_sam <- names(res_tmp)
   res_tmp <- lapply(1:length(res_tmp), function(x) {
@@ -71,6 +20,7 @@ for (i in 1:length(rds_files)) {
   res_sum <- res_summary
   # Separating populations
   sam_pops_sep <- seppop(test_pop_sam)
+  pop(test_pop_ref) <- test_pop_ref$other$ind.metrics$TargetID
   ref_pops_sep <- seppop(test_pop_ref)
   dif_res_fin <- NULL
   for (y in 1:length(sam_pops_sep)) {
@@ -78,7 +28,7 @@ for (i in 1:length(rds_files)) {
     sam_gl <- sam_pops_sep[[which(names(sam_pops_sep) == sam)]]
     class(sam_gl) <- "genlight"
     dif_res_tmp <- NULL
-    for (z in 1:10) {
+    for (z in 1:n.ref) {
       # ref <- names(ref_pops_sep)[which(names(ref_pops_sep)==res_sum[[y]][x,"variety"])]
       # ref_gl <- ref_pops_sep[[which(names(ref_pops_sep)ref)]]
       # names_ref <- res_sum[[y]][1:10,"TargetID"]
@@ -117,33 +67,6 @@ for (i in 1:length(rds_files)) {
     }
     dif_res_fin <- c(dif_res_fin,dif_res_tmp)
   }
-  fst_list[[i]] <- dif_res_fin
-}
-
-saveRDS(fst_list, "fst_list_Neis_2.rds")
-
-res_sum_fin <- as.list(1:10)
-names(res_sum_fin) <- crop_names
-for (i in 1:length(rds_files)) {
-  t1 <- readRDS(rds_files[i])
-  res_sum2 <- t1$res_summary
-  res_sum2$fst <-  fst_list[[i]]
-  res_sum_fin[[i]] <- res_sum2
-
-  p1 <-   ggplot(res_sum2, aes(x = Probability.reference / 100,
-                               y = fst)) +
-    geom_pointdensity() +
-    scale_color_viridis() +
-    geom_smooth()  +
-    labs(title = crop_names[[i]]) +
-    xlim(0.50, 1) +
-    ylim(0, 1) +
-    xlab("Probability") +
-    ylab("fst") +
-    theme_bw() +
-    theme(plot.title = element_text(size = 14)) +
-    theme(legend.position = "none")
-
-  print(p1)
-
+  fst_list <- dif_res_fin
+  return(fst_list)
 }

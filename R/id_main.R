@@ -74,13 +74,14 @@ runSampleAnalysis <- function(counts.file,
                               info.file,
                               ncores = parallel::detectCores() -1,
                               pop.size = 10,
-                              dis.mat = TRUE,
-                              plot.ref = TRUE,
-                              gen_dif = TRUE,
-                              purity = TRUE,
-                              overlap = TRUE,
-                              correlation =TRUE,
-                              na.perc.threshold = 50) {
+                              # maf = 5,
+                              # dis.mat = TRUE,
+                              # plot.ref = TRUE,
+                              # gen_dif = TRUE,
+                              # purity = TRUE,
+                              # overlap = TRUE,
+                              # correlation =TRUE,
+                              na.perc.threshold = 80) {
 
   # read in counts file and info file
   ref_sam <- read.dart.counts(counts.file = counts.file,
@@ -88,6 +89,8 @@ runSampleAnalysis <- function(counts.file,
   # converting to genotypes
   ref_sam_pops <- counts2geno(count.data = ref_sam,
                               pop.size = pop.size)
+
+  # ref_sam_pops <- gl.filter.maf(ref_sam_pops,threshold = maf)
 
   # separating references from samples
   pop(ref_sam_pops) <- ref_sam_pops$other$ind.metrics$reference
@@ -109,8 +112,8 @@ runSampleAnalysis <- function(counts.file,
   # test_pop_ref$other$ind.metrics$variety <- trimws(test_pop_ref$other$ind.metrics$variety, which = "both")
   # test_pop_ref$other$ind.metrics$variety <- gsub(" ","_",test_pop_ref$other$ind.metrics$variety)
 
-  # pop(test_pop_ref) <- test_pop_ref$other$ind.metrics$variety
   pop(test_pop_ref) <- test_pop_ref$other$ind.metrics$variety
+ # pop(test_pop_ref) <- test_pop_ref$other$ind.metrics$TargetID
 
   test_pop_sam <- dartR::gl.keep.pop(ref_sam_pops,
                                      pop.list = "sample",
@@ -127,76 +130,76 @@ runSampleAnalysis <- function(counts.file,
             " percentage of missing data were removed: ", paste(names(pop_drop_sam)," "))
   }
 
-  if (dis.mat || plot.ref) {
-    test_pop_ref_2 <- test_pop_ref
-    pop(test_pop_ref_2) <-
-      paste0(
-        test_pop_ref_2$other$ind.metrics$TargetID,
-        "_",
-        test_pop_ref_2$other$ind.metrics$variety
-      )
-
-    test_pop_ref_2$other$ind.metrics$variety <- as.factor(test_pop_ref_2$other$ind.metrics$variety)
-    t1 <- dartR::gl.dist.pop(test_pop_ref_2, method = "nei",
-                             plot.out = FALSE,
-                             verbose = 0)
-    t1 <- as.matrix(t1)
-
-	if (plot.ref) {
-
-		colors_pops <-
-		  polychrome(length(levels(
-			test_pop_ref_2$other$ind.metrics$variety
-		  )))
-		names(colors_pops) <-
-		  as.character(levels(test_pop_ref_2$other$ind.metrics$variety))
-
-		df_colors_temp_1 <-
-		  as.data.frame(cbind(
-			as.character(pop(test_pop_ref_2)),
-			as.character(test_pop_ref_2$other$ind.metrics$variety)
-		  ))
-		df_colors_temp_1 <- unique(df_colors_temp_1)
-		df_colors_temp_1$order <- 1:nPop(test_pop_ref_2)
-		colnames(df_colors_temp_1) <- c("ind", "pop", "order")
-
-		df_colors_temp_2 <- as.data.frame(cbind(names(colors_pops), colors_pops))
-		colnames(df_colors_temp_2) <- c("pop", "color")
-		df_colors <- merge(df_colors_temp_1, df_colors_temp_2, by = "pop")
-		df_colors$order <- as.numeric(df_colors$order)
-		df_colors <- df_colors[order(df_colors$order),]
-
-		df_colors_2 <- merge(data.frame(ind=colnames(t1)),
-										df_colors,by="ind" )
-
-		palette.divergent <- dartR.base::gl.colors("div")
-
-		pdf(
-		  paste0(strsplit(basename(counts.file), "_")[[1]][1], "_ref_distance.pdf"),
-		  width = nPop(test_pop_ref_2) / 5,
-		  height = nPop(test_pop_ref_2) / 5
-		)
-		heatmap.3(
-		  t1,
-		  margins = c(10, 10),
-		  ColSideColors = df_colors_2$color,
-		  RowSideColors = df_colors_2$color,
-		  sepcolor = "black",
-		  dendrogram = "column",
-		  trace = "none",
-		  col = viridis::turbo(255),
-		  colRow = df_colors_2$color,
-		  colCol = df_colors_2$color,
-		  density.info = "none",
-		  reorderfun = function(d, w){reorder(d, w, agglo.FUN = mean, na.rm = TRUE)},
-		  main = "Genetic distance (Nei's distance) between references",
-		   na.rm = TRUE,
-		  na.color = "grey"
-		)
-		# Close device
-		dev.off()
-	}
-  }
+#   if (dis.mat || plot.ref) {
+#     test_pop_ref_2 <- test_pop_ref
+#     pop(test_pop_ref_2) <-
+#       paste0(
+#         test_pop_ref_2$other$ind.metrics$TargetID,
+#         "_",
+#         test_pop_ref_2$other$ind.metrics$variety
+#       )
+#
+#     test_pop_ref_2$other$ind.metrics$variety <- as.factor(test_pop_ref_2$other$ind.metrics$variety)
+#     t1 <- dartR::gl.dist.pop(test_pop_ref_2, method = "nei",
+#                              plot.out = FALSE,
+#                              verbose = 0)
+#     t1 <- as.matrix(t1)
+#
+# 	if (plot.ref) {
+#
+# 		colors_pops <-
+# 		  polychrome(length(levels(
+# 			test_pop_ref_2$other$ind.metrics$variety
+# 		  )))
+# 		names(colors_pops) <-
+# 		  as.character(levels(test_pop_ref_2$other$ind.metrics$variety))
+#
+# 		df_colors_temp_1 <-
+# 		  as.data.frame(cbind(
+# 			as.character(pop(test_pop_ref_2)),
+# 			as.character(test_pop_ref_2$other$ind.metrics$variety)
+# 		  ))
+# 		df_colors_temp_1 <- unique(df_colors_temp_1)
+# 		df_colors_temp_1$order <- 1:nPop(test_pop_ref_2)
+# 		colnames(df_colors_temp_1) <- c("ind", "pop", "order")
+#
+# 		df_colors_temp_2 <- as.data.frame(cbind(names(colors_pops), colors_pops))
+# 		colnames(df_colors_temp_2) <- c("pop", "color")
+# 		df_colors <- merge(df_colors_temp_1, df_colors_temp_2, by = "pop")
+# 		df_colors$order <- as.numeric(df_colors$order)
+# 		df_colors <- df_colors[order(df_colors$order),]
+#
+# 		df_colors_2 <- merge(data.frame(ind=colnames(t1)),
+# 										df_colors,by="ind" )
+#
+# 		palette.divergent <- dartR.base::gl.colors("div")
+#
+# 		pdf(
+# 		  paste0(strsplit(basename(counts.file), "_")[[1]][1], "_ref_distance.pdf"),
+# 		  width = nPop(test_pop_ref_2) / 5,
+# 		  height = nPop(test_pop_ref_2) / 5
+# 		)
+# 		heatmap.3(
+# 		  t1,
+# 		  margins = c(10, 10),
+# 		  ColSideColors = df_colors_2$color,
+# 		  RowSideColors = df_colors_2$color,
+# 		  sepcolor = "black",
+# 		  dendrogram = "column",
+# 		  trace = "none",
+# 		  col = viridis::turbo(255),
+# 		  colRow = df_colors_2$color,
+# 		  colCol = df_colors_2$color,
+# 		  density.info = "none",
+# 		  reorderfun = function(d, w){reorder(d, w, agglo.FUN = mean, na.rm = TRUE)},
+# 		  main = "Genetic distance (Nei's distance) between references",
+# 		   na.rm = TRUE,
+# 		  na.color = "grey"
+# 		)
+# 		# Close device
+# 		dev.off()
+# 	}
+#   }
 
   # Separating populations
   sam_pops_sep <- seppop(test_pop_sam)
@@ -218,9 +221,16 @@ runSampleAnalysis <- function(counts.file,
     sam_pops_sep <- sam_pops_sep[-(all_NAs)]
   }
 
+  # dup_ref <- unname(unlist(lapply(ref_pops_sep,function(x){
+  #   x$other$ind.metrics$variety[1]
+  # })))
+  # no_dup <- !duplicated(dup_ref)
+  # ref_pops_sep <- ref_pops_sep[no_dup]
+
   # selecting the representative individual from the sample using PCA
   # if unix
   if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+    # top_ind <- parallel::mclapply(X = ref_pops_sep,
     top_ind <- parallel::mclapply(X = sam_pops_sep,
                                 FUN = rep_ind,
                                 mc.cores = ncores)
@@ -237,6 +247,7 @@ runSampleAnalysis <- function(counts.file,
     res_tmp <- parallel::mclapply(X = top_ind,
                                   FUN = dart.assignment,
                                   ref = ref_pops_sep,
+                                  # sam = ref_pops_sep,
                                   sam = sam_pops_sep,
                                   mc.cores = ncores)
 
@@ -254,10 +265,17 @@ runSampleAnalysis <- function(counts.file,
 
   res_tmp_range <- data.table::rbindlist(res_tmp)
   res_tmp_range2 <- range(res_tmp_range$Probability)
+  res_tmp_range3 <- range(res_tmp_range$Probability_corr)
+
 
   res_tmp <- lapply(res_tmp,function(x){
 
-    x$Probability <- scales::rescale(x$Probability,to=c(0.5,1),from =res_tmp_range2 )
+    x$Probability_scaled <- scales::rescale(x$Probability,
+                                            to = c(0,1),
+                                            from = res_tmp_range2 )
+    x$Probability_corr_scaled <- scales::rescale(x$Probability_corr,
+                                                 to = c(0,1),
+                                                 from = res_tmp_range3 )
     return(x)
 
   })
@@ -275,8 +293,13 @@ runSampleAnalysis <- function(counts.file,
   TargetID.reference <- res_tmp3$TargetID
   sample.reference <- res_tmp3$sample
   variety.reference <- res_tmp3$variety
-  Probability.reference <- res_tmp3$Probability
+  Probability <- res_tmp3$Probability
+  Probability_scaled <- res_tmp3$Probability_scaled
+  Probability_corr <- res_tmp3$Probability_corr
+  Probability_corr_scaled <- res_tmp3$Probability_corr_scaled
+  diversity <- res_tmp3$Het
   NA.percentage <- round((1 - res_tmp3$NumLoci / nLoc(ref_sam_pops)) * 100,2)
+
 
   # if(gen_dif){
   # res_summary <- data.frame(TargetID.sample = TargetID.sample,
@@ -298,7 +321,12 @@ runSampleAnalysis <- function(counts.file,
                               sample.reference = sample.reference,
                               variety.reference = variety.reference,
                               NA.percentage = NA.percentage,
-                              Probability.reference = Probability.reference
+                              Probability = Probability,
+                              Probability_scaled =Probability_scaled,
+                              Probability_corr =Probability_corr,
+                              Probability_corr_scaled =Probability_corr_scaled,
+                              diversity=diversity
+
     )
 
   # }
@@ -306,156 +334,156 @@ runSampleAnalysis <- function(counts.file,
   names(res_tmp) <- TargetID.sample
 
 
-  if(gen_dif){
+  # if(gen_dif){
+  #
+  #   # res_dif <- parallel::mclapply(X = sam_pops_sep,
+  #   #                               FUN = dart.differentiation,
+  #   #                               ref = ref_pops_sep,
+  #   #                               mc.cores = ncores)
+  #   # res_tmp2 <- lapply(1:length(res_dif),function(x){
+  #   # tmp1 <- merge(res_tmp[[x]],res_dif[[x]],by="variety")
+  #   # tmp1 <- tmp1[order(tmp1$Probability,decreasing = TRUE),]
+  #   # })
+  #   # res_tmp <- res_tmp2
+  #   dif_res_f <- NULL
+  #   for(y in 1:length(sam_pops_sep)){
+  #
+  #     sam <- names(sam_pops_sep)[y]
+  #     ref <- names(ref_pops_sep)[which(names(ref_pops_sep)==res_summary[y,"variety.reference"])]
+  #     sam_gl <- sam_pops_sep[[which(names(sam_pops_sep)==sam)]]
+  #     ref_gl <- ref_pops_sep[[which(names(ref_pops_sep)==ref)]]
+  #
+  #     sam_ref <- rbind(sam_gl,ref_gl)
+  #     pop(sam_ref) <- as.factor(pop(sam_ref))
+  #
+  #     dif_res <- dartR::utils.basic.stats(sam_ref)
+  #     dif_res <- dif_res$overall
+  #     dif_res <- dif_res["Fstp"]
+  #     dif_res_f <- c(dif_res_f,dif_res)
+  #   }
+  #   res_summary$fst <- unname(dif_res_f)
+  #
+  # }
 
-    # res_dif <- parallel::mclapply(X = sam_pops_sep,
-    #                               FUN = dart.differentiation,
-    #                               ref = ref_pops_sep,
-    #                               mc.cores = ncores)
-    # res_tmp2 <- lapply(1:length(res_dif),function(x){
-    # tmp1 <- merge(res_tmp[[x]],res_dif[[x]],by="variety")
-    # tmp1 <- tmp1[order(tmp1$Probability,decreasing = TRUE),]
-    # })
-    # res_tmp <- res_tmp2
-    dif_res_f <- NULL
-    for(y in 1:length(sam_pops_sep)){
-
-      sam <- names(sam_pops_sep)[y]
-      ref <- names(ref_pops_sep)[which(names(ref_pops_sep)==res_summary[y,"variety.reference"])]
-      sam_gl <- sam_pops_sep[[which(names(sam_pops_sep)==sam)]]
-      ref_gl <- ref_pops_sep[[which(names(ref_pops_sep)==ref)]]
-
-      sam_ref <- rbind(sam_gl,ref_gl)
-      pop(sam_ref) <- as.factor(pop(sam_ref))
-
-      dif_res <- dartR::utils.basic.stats(sam_ref)
-      dif_res <- dif_res$overall
-      dif_res <- dif_res["Fstp"]
-      dif_res_f <- c(dif_res_f,dif_res)
-    }
-    res_summary$fst <- unname(dif_res_f)
-
-  }
-
-  if(purity){
-  # Calculating purity
-  genotypic_counts <- ds14.genotypic(ds14.read(counts.file))
-  infoFile <- readTargetInfoFile(file = info.file)
-  assigned_test_reference <- res_summary$variety.reference
-  names(assigned_test_reference) <- res_summary$TargetID.sample
-  res_purity <- calculatePurity(genotypic_counts,
-                                infoFile,
-                                assigned_test_reference,
-                                ncores)
-  res_summary$purityPercent <- unlist(unname(res_purity))
-  # Setting NAs to samples with more than 50% of missing data
-  col_NAs <- c("Probability.reference",
-               "purityPercent")
-
-  }else{
+  # if(purity){
+  # # Calculating purity
+  # genotypic_counts <- ds14.genotypic(ds14.read(counts.file))
+  # infoFile <- readTargetInfoFile(file = info.file)
+  # assigned_test_reference <- res_summary$variety.reference
+  # names(assigned_test_reference) <- res_summary$TargetID.sample
+  # res_purity <- calculatePurity(genotypic_counts,
+  #                               infoFile,
+  #                               assigned_test_reference,
+  #                               ncores)
+  # res_summary$purityPercent <- unlist(unname(res_purity))
+  # # Setting NAs to samples with more than 50% of missing data
+  # col_NAs <- c("Probability.reference",
+  #              "purityPercent")
+  #
+  # }else{
 
     col_NAs <- c("Probability.reference")
-  }
+  # }
 
-  if(overlap){
+#   if(overlap){
+#
+#     # # if unix
+#     # if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+#     #
+#     #   res <- parallel::mclapply(X = 1:length(TargetID.sample),
+#     #                             FUN = tryCatch({
+#     #                               function(x){
+#     #                                 overlap_proportion(
+#     #                                   test.sample = unname(TargetID.sample)[[x]],
+#     #                                   full.report = res_tmp,
+#     #                                   ref = test_pop_ref,
+#     #                                   sam = test_pop_sam,
+#     #                                   n.varieties=10,
+#     #                                   plot = FALSE)
+#     #                                 }
+#     #                               },
+#     #                               # error handling
+#     #                               error = function(e) {
+#     #                                 return(NULL)
+#     #                                 },
+#     #                               # warning handling
+#     #                               warning = function(w) {
+#     #                                 return(NULL)
+#     #                                 }),
+#     #                             mc.cores = ncores)
+#     # }
+#     #
+#     # ## if windows
+#     # if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
+#
+# res <- lapply(1:length(TargetID.sample),function(x){
+#   # res <- lapply(900:914,function(x){
+#   tmp <- tryCatch({
+#     overlap_proportion(test.sample= TargetID.sample[x],
+#                        full.report = res_tmp,
+#                        ref = test_pop_ref,
+#                        sam = test_pop_sam,
+#                        n.varieties=10,
+#                        plot = F)
+#   },
+#   # error handling
+#   error = function(e) {
+#     return(NULL)
+#   },
+#   # warning handling
+#   warning = function(w) {
+#     return(NULL)
+#   })
+#
+#   return(tmp)
+#
+# })
+#
+#     # }
+#
+# res <- lapply(res,function(x){
+#   if(is.null(x)){
+#     x <- matrix(nrow = 1,ncol=2)
+#     return(x)
+#   }else{
+#     return(x)
+#   }
+# })
+#
+# res2 <- lapply(res,"[",2)
+# res2 <- unlist(res2)
+# res_summary$overlap <- as.numeric(res2)
+#
+#   }
 
-    # # if unix
-    # if (grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
-    #
-    #   res <- parallel::mclapply(X = 1:length(TargetID.sample),
-    #                             FUN = tryCatch({
-    #                               function(x){
-    #                                 overlap_proportion(
-    #                                   test.sample = unname(TargetID.sample)[[x]],
-    #                                   full.report = res_tmp,
-    #                                   ref = test_pop_ref,
-    #                                   sam = test_pop_sam,
-    #                                   n.varieties=10,
-    #                                   plot = FALSE)
-    #                                 }
-    #                               },
-    #                               # error handling
-    #                               error = function(e) {
-    #                                 return(NULL)
-    #                                 },
-    #                               # warning handling
-    #                               warning = function(w) {
-    #                                 return(NULL)
-    #                                 }),
-    #                             mc.cores = ncores)
-    # }
-    #
-    # ## if windows
-    # if (!grepl("unix", .Platform$OS.type, ignore.case = TRUE)) {
-
-res <- lapply(1:length(TargetID.sample),function(x){
-  # res <- lapply(900:914,function(x){
-  tmp <- tryCatch({
-    overlap_proportion(test.sample= TargetID.sample[x],
-                       full.report = res_tmp,
-                       ref = test_pop_ref,
-                       sam = test_pop_sam,
-                       n.varieties=10,
-                       plot = F)
-  },
-  # error handling
-  error = function(e) {
-    return(NULL)
-  },
-  # warning handling
-  warning = function(w) {
-    return(NULL)
-  })
-
-  return(tmp)
-
-})
-
-    # }
-
-res <- lapply(res,function(x){
-  if(is.null(x)){
-    x <- matrix(nrow = 1,ncol=2)
-    return(x)
-  }else{
-    return(x)
-  }
-})
-
-res2 <- lapply(res,"[",2)
-res2 <- unlist(res2)
-res_summary$overlap <- as.numeric(res2)
-
-  }
-
-  if(correlation){
-
-    counts <- ref_sam$counts
-    cor_df <- res_summary[,c("TargetID.sample","TargetID.reference")]
-    r1 <-apply(cor_df,1,function(x){
-      summary(lm(counts[,x[1]]~
-                   counts[,x[2]]))$r.squared
-    })
-
-    res_summary$corr <- r1
-
-
-  }
+  # if(correlation){
+  #
+  #   counts <- ref_sam$counts
+  #   cor_df <- res_summary[,c("TargetID.sample","TargetID.reference")]
+  #   r1 <-apply(cor_df,1,function(x){
+  #     summary(lm(counts[,x[1]]~
+  #                  counts[,x[2]]))$r.squared
+  #   })
+  #
+  #   res_summary$corr <- r1
+  #
+  #
+  # }
 
   # Setting NAs to samples with more than 50% of missing data
-  res_summary[which(res_summary$NA.percentage>50),col_NAs ] <- NA
+  res_summary[which(res_summary$NA.percentage>na.perc.threshold),col_NAs ] <- NA
   res_summary$NA.percentage <- round(res_summary$NA.percentage, 2)
-  res_summary$Probability.reference <- round(res_summary$Probability.reference, 2)
+  # res_summary$Probability.reference <- round(res_summary$Probability.reference, 2)
   # res_summary$purityPercent <- round(res_summary$purityPercent, 2)
-  if (dis.mat || plot.ref) {
-  return(list(
-    res_summary = res_summary,
-    res_full = res_tmp,
-    gl.references = test_pop_ref,
-    gl.samples = test_pop_sam,
-	ref_distance = t1
-  ))
-  }else{
+  # if (dis.mat || plot.ref) {
+#   return(list(
+#     res_summary = res_summary,
+#     res_full = res_tmp,
+#     gl.references = test_pop_ref,
+#     gl.samples = test_pop_sam,
+# 	ref_distance = t1
+#   ))
+  # }else{
     return(list(
       res_summary = res_summary,
       res_full = res_tmp,
@@ -463,6 +491,6 @@ res_summary$overlap <- as.numeric(res2)
       gl.samples = test_pop_sam
     ))
 
-  }
+  # }
 
 }

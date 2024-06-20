@@ -1,4 +1,5 @@
 library(dartR)
+library(data.table)
 rds_files <-  list.files("/Users/mijangos/DAP_output/DAP",
                          pattern = ".rds",
                          full.names = T)
@@ -182,7 +183,7 @@ ff <-
 # ff <- ff[-6]
 
 rds_files <-  list.files("/Users/mijangos/DAP_output/DAP",
-                         pattern = ".rds",
+                         pattern = "DAP_DAP_240514.rds",
                          full.names = T)
 
 corr_res <- as.list(1:10)
@@ -209,7 +210,18 @@ for (i in 1:length(ff)) {
   ref_sam <- read.dart.counts(counts.file = counts.file,
                               info.file = info.file)
   t1 <- readRDS(rds_files[i])
-  res_summary <-  t1$res_summary
+  # res_summary <-  t1$res_summary
+  res_summary <-  t1$res_full
+  names_sam <- names(res_summary)
+  res_summary <- lapply(1:length(res_summary), function(x){
+    tmp <- res_summary[[x]]
+    tmp <- tmp[1:10,]
+    tmp$TargetID.sample <- names_sam[x]
+    tmp$TargetID.reference <- tmp$TargetID
+    return(tmp)
+  })
+  res_summary <- rbindlist(res_summary)
+
 
   counts <- ref_sam$counts
   cor_df <- res_summary[, c("TargetID.sample", "TargetID.reference")]
@@ -222,6 +234,8 @@ for (i in 1:length(ff)) {
 
 }
 saveRDS(corr_res,"corr_res.rds")
+corr_res <- readRDS("corr_res.rds")
+
 tot_sum$corr <- r1_fin
 
 saveRDS(tot_sum, "tot_sum.rds")
@@ -233,19 +247,30 @@ more100 <-
 more100_pur <- more100[which(more100$purity)]
 
 library(dartVarietalID)
+library(data.table)
+purity_list <- readRDS("purity_list.rds")
+
 rds_files <-  list.files("/Users/mijangos/DAP_output/DAP",
-                         pattern = ".rds",
+                         pattern = "DAP_DAP_240514.rds",
                          full.names = T)
+
 crop_names <- lapply(basename(rds_files), function(x) {
-  gsub("_DAP.rds$",
+  gsub("DAP_DAP_240514.rds$",
        "", x)
 })
 crop_names <- unlist(crop_names)
+ff <-
+  list.files("/Users/mijangos/DAP_input",
+             pattern = "Counts.csv$",
+             recursive = TRUE,
+             full = TRUE)
 p1_fin <- NULL
 ncores <- 12
-purity_list <- as.list(1:10)
-names(purity_list) <- crop_names
-for (i in 8:length(ff)) {
+# purity_list <- as.list(1:10)
+# names(purity_list) <- crop_names
+# for (i in c(1:6,8:length(ff))) {
+  for (i in 8:length(ff)) {
+
   counts.file <- ff[i]
   ordnr <- gsub("_Counts.csv", "", basename(counts.file))
   filename <- file.path(gsub("input", "output/DAP", counts.file))
@@ -269,10 +294,21 @@ for (i in 8:length(ff)) {
   t1 <- readRDS(rds_files[i])
   res_summary <-  t1$res_summary
 
+  res_sum <-  t1$res_full
+  names_sam <- names(res_sum)
+  res_sum <- lapply(1:length(res_sum), function(x){
+    tmp <- res_sum[[x]]
+    tmp <- tmp[1:10,]
+    tmp$TargetID.sample <- names_sam[x]
+    tmp$TargetID.reference <- tmp$variety
+    return(tmp)
+  })
+  res_sum <- rbindlist(res_sum)
+
   genotypic_counts <- ds14.genotypic(ds14.read(counts.file))
   infoFile <- readTargetInfoFile(file = info.file)
-  assigned_test_reference <- res_summary$variety.reference
-  names(assigned_test_reference) <- res_summary$TargetID.sample
+  assigned_test_reference <- res_sum$TargetID
+  names(assigned_test_reference) <- res_sum$TargetID.sample
   res_purity <- calculatePurity(genotypic_counts,
                                 infoFile,
                                 assigned_test_reference,

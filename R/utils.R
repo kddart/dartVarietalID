@@ -999,3 +999,34 @@ heatmap.3 <-
       extrafun()
     invisible(retval)
   }
+
+
+DAP_write_excel <- function(x, info.n, filename) {
+  info <- read.csv(info.n)
+  nms <- names(x$res_full)
+  resfull <- do.call(rbind, lapply(
+    1:length(x$res_full),
+    \(i) data.frame(field_TID = nms[i], x$res_full[[i]])
+  ))
+  colnames(resfull)[1:4] <-
+    c("field_Tid", "ref_Tid", "ref_id", "variety")
+  info <- info[, c("TargetID", "sample")]
+  colnames(info)[2] <- "field_id"
+  full <- merge(resfull, info, by = 1, all.x = TRUE)
+  full$var_rank <-
+    with(full, stats::ave(Probability_corr_scaled, field_id, FUN = \(x) rank(1000 - x, ties.method =
+                                                                               "min")))
+  full$Probability <- full$Probability / 100
+  x[[2]] <- full
+  colnames(x$res_summary)[1:7] <-
+    c("field_Tid",
+      "field_id",
+      "ref_Tid",
+      "ref_id",
+      "variety",
+      "NA.perc",
+      "Probability")
+  x$res_summary$Probability <- x$res_summary$Probability / 100
+  # x[[3]] <- as.data.frame(x$ref_distance, check.names = FALSE)
+  writexl::write_xlsx(x[1:2], paste0(filename, ".xlsx"))
+}

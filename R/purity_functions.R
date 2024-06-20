@@ -3,9 +3,9 @@ calculatePurity <- function(genotypic_counts,
                             assigned_test_reference,
                             ncores) {
   infoFile_references <- infoFile$getReferences()
-  infoFile_references$variety <- gsub(" ","",infoFile_references$variety )
+  infoFile_references$variety <- gsub(" ","",infoFile_references$TargetID )
   refsWithTargetID <- data.frame(TargetID = rownames(infoFile_references),
-                                 RefType = infoFile_references$variety)
+                                 RefType = infoFile_references$TargetID)
   refsWithTargetID$RefType <- gsub(" ","",refsWithTargetID$RefType)
   varietiesGenotypes <- extractVarietyGenotypes(genotypes=genotypic_counts,
                                                 meta=refsWithTargetID)
@@ -21,11 +21,16 @@ calculatePurity <- function(genotypic_counts,
   unknownSumList <- summaryStatsVarietyGenotypes(unknown_genotypes,
                                                  n.cores = ncores)
   do.call(rbind, lapply(1:length(assigned_test_reference), function(i) {
-    result <- profileSampleAgainstVariety(unknownSumList[[i]],
-                                          varietiesDiscretised[[assigned_test_reference[[i]]]])
+    result <- profileSampleAgainstVariety(sample=unknownSumList[[i]],
+                                          discretise_variety =
+                                            varietiesDiscretised[[
+                                              which(
+                                                names(varietiesDiscretised)==assigned_test_reference[[i]])]])
 
     data.frame(
-       purityPercent = result$absent_score
+      purityPercent = result$purityPercent
+
+       # purityPercent = result$variety$n_present/result$sample$n_total
       # purityPercent = (result$present_score+(1-result$absent_score))/2
 
     )
@@ -112,7 +117,8 @@ profileSampleAgainstVariety <- function(sample,
     }
 
     obj$match <- obj$present_score + obj$absent_score
-    obj$purityPercent <- obj$absent_score * 100
+    # obj$purityPercent <-  (obj$present$matched/obj$present$filtered)  * 100
+    obj$purityPercent <- obj$match
 
     return(obj)
 
@@ -246,26 +252,32 @@ extractVarietyGenotypes <- function(genotypes,
   meta_grouped <- lapply(varieties, function(v) {
     return(meta[meta$RefType == v, ])
   })
-  return(lapply(meta_grouped, function(g) {
+  return(lapply(meta_grouped, function(z) {
+    # for(g in meta_grouped){
     obj <- {
     }
-    obj$name <- as.character(g$RefType[1])
-    obj$genotypes <- sapply(g$TargetID, function(t) {
-      g <- t(as.matrix(genotypes[, as.character(t)]))
-      if (is.null(g)) {
+    obj$name <- as.character(z$RefType[1])
+    obj$genotypes <- sapply(z$TargetID, function(x) {
+      if(x %in% colnames(genotypes)){
+        g <- t(as.matrix(genotypes[, as.character(x)]))
+        return(g)
+      }else{
         warning(
           paste(
             "Missing sample",
-            t,
+            x,
             "in genotypes specified in meta (Variety=",
-            g$RefType[1]
+            z$RefType[1]
           )
         )
+        g <- t(as.matrix(genotypes[,1]))
+        g[] <- NA
+        return(g)
       }
-      return(g)
     })
-    colnames(obj$genotypes) <- g$TargetID
+    colnames(obj$genotypes) <- z$TargetID
     rownames(obj$genotypes) <- rownames(genotypes)
     return(obj)
+    # }
   }))
 }

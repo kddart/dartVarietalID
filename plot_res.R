@@ -44,13 +44,14 @@ colnames(corr_list2) <- c("val","crop","stat")
 overlap_list <- readRDS("overlap_res.rds")
 
 purity_list <-readRDS("purity_list.rds")
-purity_list <- lapply(1:length(purity_list),function(x){
-  tmp <- as.data.frame(purity_list[[x]])
-  tmp$crop <- crop_names[x]
-  tmp$stat <- "Purity"
-  colnames(tmp) <- c("val","crop","stat")
-  return(tmp)
-})
+purity_list[[7]] <- NA
+# purity_list <- lapply(1:length(purity_list),function(x){
+#   tmp <- as.data.frame(purity_list[[x]])
+#   tmp$crop <- crop_names[x]
+#   tmp$stat <- "Purity"
+#   colnames(tmp) <- c("val","crop","stat")
+#   return(tmp)
+# })
 purity_list2 <- rbindlist(purity_list)
 purity_list2 <- purity_list2[which(purity_list2$val < 1),]
 
@@ -58,22 +59,25 @@ purity_list2 <- purity_list2[which(purity_list2$val < 1),]
 fin_stats <- rbind(corr_list2,diff_list2,het_list2)
 p_list <- as.list(1:10)
 
-for(i in 1:length(rds_files)){
+for(i in c(1:6,8:10)){
 
   t1 <- readRDS(rds_files[i])
   res_sum <- t1$res_summary
   res_sum$fst <- diff_list[[i]]
   res_sum$corr <- corr_list[[i]]
   res_sum$overlap <- overlap_list[[i]]
+  purity_list2 <- purity_list[[i]]
+  purity_list2 <- purity_list2[which(purity_list2 < 1)]
+  res_sum$purity <- purity_list2
 
-  r2_prob_corr <- round(summary(lm(res_sum$Probability.reference ~ res_sum$overlap))$r.squared,2)
+  # r2_prob_corr <- round(summary(lm(res_sum$Probability.reference ~ res_sum$overlap))$r.squared,2)
 
 p1 <-   ggplot(res_sum,aes(x= Probability.reference,
                          y= overlap/100))+
     geom_pointdensity()+
     scale_color_viridis() +
     geom_smooth()  +
-    labs(title=crop_names[[i]]) +
+    labs(title=crop_names[i]) +
     # geom_text(aes( x=0.55,y=0.9,
     #           label = paste("R^2: ", r2_prob_corr,sep="")),
     #           show.legend=F,
@@ -119,6 +123,27 @@ p3 <- ggplot(res_sum,aes(x= Probability.reference,
   ylab("Nei's distance") +
   theme_bw()
 
+p3 <- ggplot(res_sum,aes(x= Probability.reference,
+                         y= fst))+
+  geom_pointdensity()+
+  scale_color_viridis() +
+  geom_smooth()  +
+  xlim(0.60,1)+
+  ylim(0,0.5) +
+  xlab("Probability") +
+  ylab("Nei's distance") +
+  theme_bw()
+
+# p4 <- ggplot(res_sum,aes(x= Probability.reference,
+#                          y= purity))+
+#   geom_pointdensity()+
+#   scale_color_viridis() +
+#   geom_smooth()  +
+#   xlim(0.60,1)+
+#   ylim(0,1) +
+#   xlab("Probability") +
+#   ylab("Purity") +
+#   theme_bw()
 
 # p3 <-   ggplot(res_sum,aes(y= overlap/100,
 #                            x= corr))+
@@ -132,15 +157,15 @@ p3 <- ggplot(res_sum,aes(x= Probability.reference,
 #   theme_bw() +
 #   theme(legend.position="none")
 
-p4 <- p1+p2+p3
+p5 <- p1+p2+p4
 
-p_list[[i]] <- p4
+p_list[[i]] <- p5
 
 }
 
 p_fin <- p_list[[1]]/p_list[[2]]/p_list[[3]]/p_list[[4]]/p_list[[5]]/p_list[[6]]/p_list[[7]]/p_list[[8]]/p_list[[9]]/p_list[[10]]
 # p_fin
-ggsave("fin_stats_neis.pdf",  width = 15, height = 50, units = "in", dpi="retina", bg = "transparent",limitsize = FALSE)
+ggsave("fin_stats_purity.pdf",  width = 16, height = 60, units = "in", dpi="retina", bg = "transparent",limitsize = FALSE)
 
 den_corr <- ggplot(corr_list2,aes(x= corr,fill=crop,y=crop))+
   geom_density_ridges()+

@@ -17,6 +17,7 @@ dart.assignment <- function(ref,
                             sam,
                             unknown) {
 
+  # sam_pop <- sam[[which(names(sam)==unknown$other$ind.metrics$variety[1])]]
   sam_pop <- sam[[which(names(sam)==unknown$other$ind.metrics$TargetID[1])]]
 
   unknown_pop <- data.frame(gl2alleles(unknown))
@@ -58,6 +59,12 @@ dart.assignment <- function(ref,
     return(He)
   }
 
+  # pop.het_fun <- function(df) {
+  #   out <- colMeans(as.matrix(df) == 1, na.rm = T)
+  #   He <- mean(out,na.rm =TRUE)
+  #   return(He)
+  # }
+
   Ho_sam <- pop.het_fun(sam_pop)
 
   # Ho <- lapply(1:length(ref),function(y){
@@ -76,7 +83,9 @@ dart.assignment <- function(ref,
                     sample = NA,
                     variety = NA,
                     NumLoci = NA,
-                    Probability = NA)
+                    Probability = NA,
+                    Probability_corr = NA,
+                    Het = NA)
 
   # for each reference
   for (popx in 1:length(ref)) {
@@ -108,6 +117,8 @@ df_assign$hom2 <- df_assign$Frequency2 ^ 2
 # / df_assign$Ho
 # probability of being heterozygote (2pq)
 df_assign$het <- (2 * df_assign$Frequency1 * df_assign$Frequency2) / 0.5
+# df_assign$het <- (2 * df_assign$Frequency1 * df_assign$Frequency2)
+
 # if sample is homozygote for the reference allele, set probability of
 # homozygote for the alternative allele and heterozygote to 0
 df_assign[which(df_assign$a1 == df_assign$a2 &
@@ -139,14 +150,20 @@ ret[popx, "TargetID"] <- as.character(ref[[popx]]$other$ind.metrics$TargetID[1])
 ret[popx, "NumLoci"] <- n_loc
 # get the mean probability across all the loci
 het_correction <- 1 - ((Ho_pop+Ho_sam)/2)
-ret[popx, "Probability"] <- (sum(df_assign$prob, na.rm = TRUE)/ n_loc) / het_correction
-# ret[popx, "Probability"] <- (sum(df_assign$prob, na.rm = TRUE)/ n_loc) / (1-Ho_pop)
+# het_correction <- 1 - (Ho_pop)
+
+# ret[popx, "Probability"] <- (sum(df_assign$prob, na.rm = TRUE)/ n_loc) / het_correction
+ret[popx, "Probability"] <- (sum(df_assign$prob, na.rm = TRUE)/ n_loc)
+ret[popx, "Probability_corr"] <- (sum(df_assign$prob, na.rm = TRUE)/ n_loc) / het_correction
+ret[popx, "Het"] <- ((Ho_pop+Ho_sam)/2)
 
 # ret[popx, "Probability2"] <- ret[popx, "Probability"]/(1-Ho_pop)
   }
 # order references by probability
-ret <- ret[order(-ret$Probability), ]
+ret <- ret[order(-ret$Probability_corr), ]
 ret$Probability <- round(ret$Probability * 100, 2)
+ret$Probability_corr <- round(ret$Probability_corr * 100, 2)
+
 # head(ret)
   return(ret)
 

@@ -4,7 +4,7 @@ library(ggpointdensity)
 library(viridis)
 library(dartR.base)
 rds_files <-  list.files("/Users/mijangos/DAP_output/DAP",
-                         pattern = ".rds",
+                         pattern = "DAP.rds",
                          full.names = T)
 crop_names <- lapply(basename(rds_files),function(x){
   gsub(
@@ -57,4 +57,17 @@ saveRDS(corr_list,"corr_list.rds")
 
 saveRDS(het_list,"het_list.rds")
 saveRDS(diff_list,"diff_list.rds")
+
+het <- readRDS("het_list.rds")
+het_mean <- lapply(het,unlist)
+het_mean <- lapply(het_mean,unname)
+het_mean <- lapply(het_mean,mean)
+het_mean <- data.frame(crop = names(het_mean),het = unname(unlist(het_mean )))
+dif <- readRDS("diff_list.rds")
+dif_mean <- lapply(dif,unlist)
+dif_mean <- lapply(dif_mean,unname)
+dif_mean <- lapply(dif_mean,mean,na.rm = T)
+dif_mean <- data.frame(crop = names(dif_mean),dif = unname(unlist(dif_mean )))
+
+merge_df <- merge(het_mean,dif_mean,by="crop")
 
